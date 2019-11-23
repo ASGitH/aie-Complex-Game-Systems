@@ -1,0 +1,58 @@
+int counter = 0;
+    int current_Position_Index = 0; 
+    int index_Counter = 0;
+    int starting_ITLX_Value = 0;
+    int starting_ITLY_Value = 0;
+    
+    starting_ITLX_Value = 1;
+    starting_ITLY_Value = 1;
+
+    convert_Room_Position(_player_Position, room_Width_Array[map_Index_Array[current_Position_On_Map]]);
+    
+	// ***********----------- First Revision -----------*********** //
+	
+    for(index_Counter = 0; index_Counter < 360; index_Counter++){
+        /*
+        if(_data[current_Position_Index + counter != NULL]){
+            if(index_Counter < 180){ counter -= 1; }
+            else{
+                if(!has_Count_Been_Reset){ has_Count_Been_Reset = TRUE; counter = 0; }
+                counter += 1;
+            }
+            set_bkg_tiles(itlx, itly, 1, 1, _data[current_Position_Index + counter]);
+        }
+        itlx += 1;
+        if(itlx >= room_Width_Array[map_Index_Array[current_Position_Index]]){ itlx = 0; itly += 1; }
+        */
+
+	// ***********----------- Second Revision -----------*********** //
+        // Move backwards by 180 first from current position until next index is null or reach limit
+        if(index_Counter < 180){ 
+            counter -= 1;
+            if(_data[current_Position_Index + counter != NULL]){
+                itlx -= 1;
+                if(itlx < 0) {
+                    itlx = room_Width_Array[map_Index_Array[current_Position_Index]] - 1;
+                    itly -= 1;
+                }
+            }
+            else { index_Counter = 179; }
+        }
+        // Move forwards by 180 next from current position until next index is null or reach limit
+        else if(index_Counter >= 180){
+            if(!has_Count_Been_Reset){ 
+                counter = 0;
+                has_Count_Been_Reset = TRUE;
+                itlx = starting_ITLX_Value;
+                itly = starting_ITLY_Value; 
+            }
+            counter += 1;
+            if(_data[current_Position_Index + counter != NULL]){
+                itlx += 1;
+                if(itlx > room_Width_Array[map_Index_Array[current_Position_Index]] - 1) {
+                    itlx = 0;
+                    itly += 1;
+                }
+            }
+        }
+        //set_bkg_tiles(itlx + counter, itly, 1, 1, _data[current_Position_Index + counter]);

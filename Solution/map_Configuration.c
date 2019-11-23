@@ -1,0 +1,193 @@
+// Ctrl + Shift + B = Build
+
+// MAX_HEIGHT * MAX_WIDTH = 25 (Limit of rooms)
+#define MAX_HEIGHT 5
+#define MAX_WIDTH 5
+
+#include <gb/gb.h>
+#include <rand.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "map_Library.h"
+
+#include "extended_Room.c"
+
+BOOLEAN has_Count_Been_Reset = FALSE;
+
+char *map_Array[] = { blank_Dungeon_Room, extended_Room, test_Map };
+
+int current_Position_In_Room = 0;
+int current_Position_On_Map = 0;
+// index_Top_Left_X = itlx
+int itlx = 0;
+// index_Top_Left_Y = itly
+int itly = 0;
+int returned_Map_Height = 0;
+int returned_Map_Width = 0;
+int size_Of_Map = 0;
+// tile_Index_Top_Left = titl
+// int titl = 0;
+
+int map_Index_Array[MAX_HEIGHT * MAX_WIDTH];
+// Position On Map[0] = X position on map, Position On Map[1] = Y position on map;
+int position_On_Map[2] = {1, 1};
+// room_Height / room_Width array has a provided height and width, each array will hardcode the height and width for each room
+// rHAWA[0] = blank_Dungeon_Room, rHAWA[1] = test_Map 
+int room_Height_Array[2] = { 18, 19, 18 };
+int room_Width_Array[2] = { 20, 20, 20 };
+
+// Takes in the current position on the map (Position On Map[2]), and converts the value into the index corresponding to the Map Index Array
+int convert_Map_Position(int _map_Position[]){
+    int x_Position_Counter = 0;
+    int y_Position_Counter = 0;
+    int map_Index_Counter = 0;
+
+    for(y_Position_Counter = 0; y_Position_Counter < _map_Position[1] - 1; y_Position_Counter++){ map_Index_Counter += returned_Map_Width; }
+    for(x_Position_Counter = 0; x_Position_Counter <= _map_Position[0] - 1; x_Position_Counter++){ map_Index_Counter += 1; }
+    
+    // printf("position_On_Map[%d][%d] = map_Index_Array[%d] = %d\n", position_On_Map[0], position_On_Map[1], map_Index_Counter, map_Index_Array[map_Index_Counter - 1]);
+
+    return(map_Index_Counter);
+}
+
+// Takes in the player's current position, and converts the value into the index corresponding to current tile relative to it's position in the current room
+void convert_Room_Position(int _player_Position[], int _width_Of_Room){
+    itlx = (_player_Position[0] - 8) / 8;
+    itly = (_player_Position[1] - 16) / 8;
+
+    current_Position_In_Room = _width_Of_Room * itly + itlx;
+
+    // printf("position_In_Room = [%d][%d] = room_Tile_Index(%d)\n", itlx, itly, titl);
+}
+
+// Move the player, then move the background
+void move_Background(const char *_data, int _direction, int _distance_Before_Activation, int _player_Position[]){
+    BOOLEAN refresh_Map = FALSE;
+
+    int counter_X = 0;
+    int counter_Y = 0;
+    int size_Of_Current_Room = 0;
+    // Tile Index Top Left = titl (Note: titl's range would only be between 0 - 359)
+    int titl = 0;
+
+    // Window Position[0] = X Position in current window, Window Position[1] = Y Position in current window
+    int window_Position[2] = { 0, 0 };
+
+    window_Position[0] = index_Top_Left_X; window_Position[1] = index_Top_Left_Y;
+
+    // Get the player's current position by converting their position[2] into an integer(tile index)
+    convert_Room_Position(_player_Position, room_Width_Array[map_Index_Array[current_Position_On_Map]]);
+    titl = current_Position_In_Room;
+    
+    // Check if the player's tile index (if we add the width of the current room) is (not?) null in the current room's index
+    switch(_direction){
+        // TODO: If spawn in a corner and can shift avaliable, since player is too close to edge, will not shift / update.
+        if(window_Position[0] < 1){ window_Position[0] = 1; } else if(window_Position[0] > 18) { window_Position[0] = 18; }
+        if(window_Position[1] < 1){ window_Position[1] = 1; } else if(window_Position[1] > 16) { window_Position[1] = 16; }
+
+        // Down = 0
+        case 0:
+            // Check if the x-axis can be shifted to the bottom
+            if(_data[titl + room_Width_Array[map_Index_Array[current_Position_On_Map]]] != NULL){
+                // printf("Where do you think your going partner?\n");
+                for(size_Of_Current_Room = 0; size_Of_Current_Room < 360; size_Of_Current_Room++){
+                    set_bkg_tiles(counter_X, counter_Y, 1, 1, set);
+                    counter_X += 1;
+                    if(counter_X == 20){ counter_X = 0; counter_Y += 1; }
+                }
+            }
+            //else {  };
+        break;
+        // Left = 1
+        case 1:
+            // Check if the x-axis can be shifted to the left
+            if(index_Top_Left_X <= 4 && _data[titl - _distance_Before_Activation] != NULL){
+                printf("Where do you think your going partner?\n");
+            }
+        break;
+        // Right = 2
+        case 2:
+            // Check if the x-axis can be shifted to the right
+            if(index_Top_Left_X <= room_Width_Array[map_Index_Array[current_Position_On_Map]] - 5 && _data[titl + _distance_Before_Activation] != NULL){
+                printf("Where do you think your going partner?\n");
+            }
+        break;
+        // Up = 4
+        case 4:
+            // Check if the x-axis can be shifted to the top
+            if(_data[titl - room_Width_Array[map_Index_Array[current_Position_On_Map]]] != NULL){
+                printf("Where do you think your going partner?\n");
+            }
+        break;
+    }
+
+    // if(_data[titl + room_Width_Array[map_Index_Array[current_Position_On_Map]]] != NULL){   // Note: NULL = 0x00?
+    //     printf("Where do you think your going partner?\n");
+    // } 
+}
+
+// _height / _width - how many rooms to create
+void set_Map(int _height, int _width){
+    int index_Counter = 0;
+    int selected_Number = 0;
+
+    returned_Map_Height = _height;
+    returned_Map_Width = _width;
+    size_Of_Map = _height * _width;
+    
+    // If size_Of_Map is bigger than MAX_HEIGHT * MAX_WIDTH, let the user know to choose a smaller set of dimensions
+    if(size_Of_Map > (MAX_HEIGHT * MAX_WIDTH) + 1){ 
+        printf("Error - Exceeding maximum capacity. Please reconfigure the amount of rooms.");
+        delay(99);
+        reset();
+    }
+    else if(size_Of_Map == 0){
+        printf("Error - Room size must be One or above. Please reconfigure the amount of rooms.");
+        delay(99);
+        reset();
+    }
+    else
+    {
+    for(index_Counter = 0; index_Counter < size_Of_Map; index_Counter++){
+        selected_Number = randw() % 2;
+        //map_Index_Array[index_Counter] = selected_Number;
+        map_Index_Array[0] = 1;
+        map_Index_Array[1] = 1;
+        map_Index_Array[2] = 0;
+        map_Index_Array[3] = 1;
+        //printf("Selected Number: %d \n", selected_Number);
+    }
+    current_Position_On_Map = 0;
+    // Start off at the top left of the map
+    set_bkg_tiles(0, 0,  room_Width_Array[map_Index_Array[0]], room_Height_Array[map_Index_Array[0]], map_Array[0]);
+    }
+}
+
+void swap_Room(int _direction){
+    //int  
+    // Down = 0
+    if(_direction == 0){
+        // Check to see if next to bottom edge to map else, move down once
+        if(position_On_Map[1] < returned_Map_Height){ position_On_Map[1] += 1; }
+    }
+    // Left = 1
+    else if(_direction == 1){
+        // Check to see if next to edge to map else, move left once
+        if(position_On_Map[0] - 1 != 0){ position_On_Map[0] -= 1; }
+    }
+    // Right = 2
+    else if(_direction == 2){
+        // Check to see if next to edge to map else, move right once
+        if(position_On_Map[0] < returned_Map_Width){ position_On_Map[0] += 1; }
+    }
+    // Up = 3
+    else if(_direction == 3){
+        // Check to see if next to top edge to map else, move up once
+        if(position_On_Map[1] - 1 != 0){ position_On_Map[1] -= 1; }
+    }     
+    current_Position_On_Map = convert_Map_Position(position_On_Map);
+    // Here, we would grab an integer value and check if its less than 0, change it to 0.
+    set_bkg_tiles(0, 0, 20, 18, map_Array[map_Index_Array[current_Position_On_Map]]); 
+    delay(99);
+}
