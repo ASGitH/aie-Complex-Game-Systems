@@ -1,0 +1,64 @@
+#include <gb/gb.h>
+
+// Size of the map (Width)
+#define mapSizeX 64
+
+// Map and tiles are generated via the GameBoy Map Builder and GameBoy Tile Designer tools
+extern unsigned char map_Data[];
+extern unsigned char tile_data[];
+
+void main(){
+    BYTE tileCounter = 0;
+
+    UBYTE i = 0;
+    UBYTE scrollX = 0;
+    UBYTE temporaryA = 0, temporaryB = 0;
+
+    UWORD counter = 0;
+
+    wait_vbl_done();
+    disable_interrupts();
+    
+    DISPLAY_OFF;
+    HIDE_BKG;
+    HIDE_SPRITES;
+    HIDE_WIN;
+
+    SWITCH_RAM_MBC1(2);
+
+    set_bkg_data(0, 4, &tile_Data);
+
+    counter = 0;
+
+    for(temporaryA = 0; temporaryA != 18; temporaryA++){ // Only shows the visible part of the screen.
+        set_bkg_tiles(0, temporaryA, 22, 1, &(map_Data + counter));
+        counter = counter + mapSizeX;
+    }
+
+    // Show the map
+    SHOW_BKG;
+    DISPLAY_ON;
+    enable_interrupts();
+
+    while(1){
+        wait_vbl_done();
+
+        // Read the GameBoy D-Pad
+        i = joypad();
+
+        if((i & J_LEFT) && (scrollX != 0)){ scroll_bkg(-1, 0); tileCounter--; }
+        else if((i & J_RIGHT) && (scrollX < mapSizeX - 20)){ scroll_bkg(1, 0); tileCounter++; }
+
+        if(tileCounter == 8){
+            scrollX++;
+            tileCounter = 0;
+            counter = scrollX + 21;
+            temporaryB = counter % 32;
+
+            for(temporaryA = 0; temporaryA != 18; temporaryA++){
+                set_bkg_tiles(temporaryB, temporaryA, 1, 1, &(map_Data + counter));
+                counter = counter + mapSizeX;
+            }
+        }
+    }
+}
