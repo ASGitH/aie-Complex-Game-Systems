@@ -1,13 +1,13 @@
 /*
 
- EXTENDED_ROOM.H
+ BACKGROUND_SCROLLER_ROOM.H
 
  Map Include File.
 
  Info:
    Section       : 
    Bank          : 0
-   Map size      : 20 x 19
+   Map size      : 100 x 18
    Tile set      : C:\Users\s189074\Desktop\Complex_Game_Systems\Assets\Gameboy Tile Designer\dungeon_Map_Sprites.gbr
    Plane count   : 1 plane (8 bits)
    Plane order   : Tiles are continues
@@ -18,10 +18,10 @@
 
 */
 
-#define extended_RoomWidth 20
-#define extended_RoomHeight 19
-#define extended_RoomBank 0
+#define background_Scroller_MapWidth 100
+#define background_Scroller_MapHeight 18
+#define background_Scroller_MapBank 0
 
-extern unsigned char extended_Room[];
+extern unsigned char background_Scroller_Map[];
 
-/* End of EXTENDED_ROOM.H */
+/* End of BACKGROUND_SCROLLER_ROOM.H */

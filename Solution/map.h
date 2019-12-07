@@ -1,13 +1,13 @@
 /*
 
- TEST.H
+ MAP.H
 
  Map Include File.
 
  Info:
    Section       : 
    Bank          : 0
-   Map size      : 20 x 18
+   Map size      : 64 x 18
    Tile set      : C:\Users\s189074\Desktop\Complex_Game_Systems\Assets\Gameboy Tile Designer\dungeon_Map_Sprites.gbr
    Plane count   : 1 plane (8 bits)
    Plane order   : Tiles are continues
@@ -18,10 +18,10 @@
 
 */
 
-#define test_MapWidth 20
-#define test_MapHeight 18
-#define test_MapBank 0
+#define map_DataWidth 64
+#define map_DataHeight 18
+#define map_DataBank 0
 
-extern unsigned char test_Map[];
+extern unsigned char map_Data[];
 
-/* End of TEST.H */
+/* End of MAP.H */
