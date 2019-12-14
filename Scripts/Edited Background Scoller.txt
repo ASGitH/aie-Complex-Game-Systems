@@ -1,0 +1,19 @@
+    // if(joypad() & J_RIGHT){
+    //     // set_bkg_tiles(19, 0, 1, 1, &(map_Array[map_Index_Array[current_Position_On_Map]] + 41));
+    //     // 20, 120, 220, 320, 420, 520, 620
+    //     set_bkg_tiles(18, 1, 1, 1, (unsigned char *) &(map_Array[map_Index_Array[current_Position_On_Map]] + 893));
+    //     //counter += 1;
+    //     //set_bkg_tiles(19, 2, 1, 1, &(map_Array[map_Index_Array[current_Position_On_Map]] + 39 + 200));
+    //     delay(99);
+    // }
+
+// if(tile_Counter != 0){
+    //     scroll_X += 1;
+    //     tile_Counter = 0;
+    //     counter = scroll_X + 21;
+    //     temporary_B = counter % 32;
+    //     for(temporary_A = 0; temporary_A != 18; temporary_A++){
+    //         set_bkg_tiles(20, temporary_A, 1, 1, (unsigned char *) &(map_Array[map_Index_Array[current_Position_On_Map]] + counter));
+    //         counter += room_Width_Array[map_Index_Array[current_Position_On_Map]];
+    //     }
+    // }

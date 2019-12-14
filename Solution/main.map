@@ -21,73 +21,75 @@ AREA .  .ABS.
 		l__HEADER	01EB
 		s__CODE	0200
 		l__HOME	04AF
-		l__DATA	0918
-		l__CODE	1065
+		l__DATA	0A16
 		l__BASE	114A
-		s__HOME	1265
-		s__BASE	1714
-		s__LIT	285E
-		s__GSINIT	285E
-		l__GSINIT	34E6
-		s__GSINITTAIL	5D44
-		s__GSFINAL	5D45
+		l__CODE	14E5
+		s__HOME	16E5
+		s__BASE	1B94
+		s__LIT	2CDE
+		s__GSINIT	2CDE
+		l__GSINIT	3ADC
+		s__GSINITTAIL	67BA
+		s__GSFINAL	67BB
 		.OAM	C000
 		s__DATA	C0A0
-		s__BSS	C9B8
-		s__HEAP	CA41
-		s__BSEG	CA41
-		s__ISEG	CA41
-		s__XSEG	CA41
-		s__OVERLAY	CA41
+		s__BSS	CAB6
+		s__HEAP	CB3F
+		s__BSEG	CB3F
+		s__ISEG	CB3F
+		s__XSEG	CB3F
+		s__OVERLAY	CB3F
 		.STACK	E000
 		.refresh_OAM	FF80
 		l__SFR	10000
 AREA _CODE
 	RADIX HEX
 	BASE 0200
-	SIZE 1065
+	SIZE 14E5
 	ATTRIB REL CON
 	GLOBALS
 		_animate_Sprite	0200
-		_enable_Movement	028F
-		_instantiate_Player	02AF
-		_move_Player	030E
-		_update_Player	0446
-		_convert_Map_Position	0447
-		_convert_Room_Position	04CF
-		_move_Background	055D
-		_set_Map	070D
-		_swap_Room	0946
-		_main	0A96
-		_rand	0AC9
-		_randw	0AC9
-		_putchar	0AF4
-		_setchar	0AFD
-		_gotoxy	0B06
-		_posx	0B11
-		_posy	0B22
-		.adv_gcurs	0B33
-		.circle	0B50
-		.horlin	0BF3
-		.verlin	0C2B
-		.circplot	0C87
-		.box	0D05
-		.line	0DDB
-		.xonly	0EFC
-		.yonly	104B
-		.plot	106C
-		.wrbyte	1089
-		.getpix	110B
-		.wrtchr	1140
-		_gotogxy	11A4
-		_wrtchr	11AF
-		_getpix	11C4
-		_color	11D0
-		_circle	11DF
-		_box	11F9
-		_line	121D
-		_plot_point	1235
-		_plot	1249
+		_empty_Tile	028F
+		_enable_Movement	0290
+		_instantiate_Player	02B0
+		_move_Player	0525
+		_update_Player	068B
+		_convert_Map_Position	068C
+		_blankmap	0714
+		_convert_Room_Position	0715
+		_move_Background	07A3
+		_set_Map	0B14
+		_swap_Room	0D2F
+		_main	0EC3
+		_rand	0F49
+		_randw	0F49
+		_putchar	0F74
+		_setchar	0F7D
+		_gotoxy	0F86
+		_posx	0F91
+		_posy	0FA2
+		.adv_gcurs	0FB3
+		.circle	0FD0
+		.horlin	1073
+		.verlin	10AB
+		.circplot	1107
+		.box	1185
+		.line	125B
+		.xonly	137C
+		.yonly	14CB
+		.plot	14EC
+		.wrbyte	1509
+		.getpix	158B
+		.wrtchr	15C0
+		_gotogxy	1624
+		_wrtchr	162F
+		_getpix	1644
+		_color	1650
+		_circle	165F
+		_box	1679
+		_line	169D
+		_plot_point	16B5
+		_plot	16C9
 AREA _HEADER
 	RADIX HEX
 	BASE 0000
@@ -97,254 +99,254 @@ AREA _HEADER
 		_exit	01D2
 AREA _HOME
 	RADIX HEX
-	BASE 1265
+	BASE 16E5
 	SIZE 04AF
 	ATTRIB REL CON
 	GLOBALS
-		.set_mode	1265
-		.remove_VBL	1275
-		.remove_LCD	127B
-		.remove_TIM	1281
-		.remove_SIO	1287
-		.remove_JOY	128D
-		.add_VBL	1293
-		.add_LCD	1299
-		.add_TIM	129F
-		.add_SIO	12A5
-		.add_JOY	12AB
-		.remove_int	12B1
-		.add_int	12D1
-		.wait_vbl_done	12ED
-		_wait_vbl_done	12ED
-		_display_off	1304
-		.display_off	1304
-		.serial_IO	1325
-		_mode	1354
-		_get_mode	135D
-		_enable_interrupts	1362
-		_disable_interrupts	1364
-		_reset	1366
-		.reset	1366
-		_set_interrupts	136C
-		_remove_VBL	1377
-		_remove_LCD	1382
-		_remove_TIM	138D
-		_remove_SIO	1398
-		_remove_JOY	13A3
-		_add_VBL	13AE
-		_add_LCD	13B9
-		_add_TIM	13C4
-		_add_SIO	13CF
-		_add_JOY	13DA
-		_clock	13E5
-		__printTStates	13EE
-		banked_call	13EF
-		banked_ret	1408
-		_printf	1411
-		_sprintf	1440
+		.set_mode	16E5
+		.remove_VBL	16F5
+		.remove_LCD	16FB
+		.remove_TIM	1701
+		.remove_SIO	1707
+		.remove_JOY	170D
+		.add_VBL	1713
+		.add_LCD	1719
+		.add_TIM	171F
+		.add_SIO	1725
+		.add_JOY	172B
+		.remove_int	1731
+		.add_int	1751
+		.wait_vbl_done	176D
+		_wait_vbl_done	176D
+		_display_off	1784
+		.display_off	1784
+		.serial_IO	17A5
+		_mode	17D4
+		_get_mode	17DD
+		_enable_interrupts	17E2
+		_disable_interrupts	17E4
+		_reset	17E6
+		.reset	17E6
+		_set_interrupts	17EC
+		_remove_VBL	17F7
+		_remove_LCD	1802
+		_remove_TIM	180D
+		_remove_SIO	1818
+		_remove_JOY	1823
+		_add_VBL	182E
+		_add_LCD	1839
+		_add_TIM	1844
+		_add_SIO	184F
+		_add_JOY	185A
+		_clock	1865
+		__printTStates	186E
+		banked_call	186F
+		banked_ret	1888
+		_printf	1891
+		_sprintf	18C0
 AREA _BASE
 	RADIX HEX
-	BASE 1714
+	BASE 1B94
 	SIZE 114A
 	ATTRIB REL CON
 	GLOBALS
-		_scroll_bkg	1714
-		__mulschar	172A
-		__muluchar	172A
-		__mulsint	1736
-		__muluint	1736
-		.mulu16	174A
-		.mul16	174A
-		.mv_sprite	1760
-		_move_sprite	176F
-		_set_win_data	177C
-		_set_bkg_data	177C
-		_set_sprite_data	17C9
-		.scroll_sprite	17F8
-		_scroll_sprite	1809
-		.padup	1816
-		_waitpadup	1816
-		.jpad	1826
-		.wait_pad	1853
-		_joypad	185A
-		_waitpad	185F
-		.set_sprite_tile	1869
-		_set_sprite_tile	1876
-		.delay	1881
-		_delay	18BB
-		_initrand	18C4
-		.initrand	18C6
-		.copy_vram	18CF
-		_get_data	18DE
-		_set_data	18DE
-		_set_bkg_tiles	18F1
-		__modslong	1905
-		__divslong	1905
-		__mulslong	1905
-		__divschar	1906
-		__modschar	1912
-		__divsint	191D
-		__modsint	192E
-		__divuchar	193D
-		__moduchar	1949
-		__divuint	1954
-		__moduint	1965
-		.mod8	1974
-		.div8	1974
-		.mod16	197C
-		.div16	197C
-		.modu8	19B2
-		.divu8	19B2
-		.modu16	19B5
-		.divu16	19B5
-		font_copy_uncompressed	19F2
-		font_copy_compressed	1A28
-		font_load	1A7D
-		font_copy_current	1AC5
-		font_set	1B0D
-		.put_char	1B1A
-		.out_char	1B33
-		.del_char	1B3A
-		_font_load	1B95
-		_font_set	1BA3
-		_font_init	1BB2
-		_cls	1BD4
-		.cls	1BD4
-		.cr_curs	1C06
-		.adv_curs	1C1B
-		.tmode	1C77
-		.tmode_out	1CA0
-		_font_load_ibm_fixed	1CB0
-		_font_ibm_fixed	1CB7
-		_font_ibm_fixed_tiles	1DB9
-		.gmode	25B9
-		.vbl	261B
-		.lcd	2626
-		.draw_image	2633
-		.switch_data	263D
-		_switch_data	2674
-		_draw_image	268F
-		.y_table	26A2
-		.set_xy_wtt	27C2
-		.set_xy_btt	27D3
-		.set_xy_tt	27E2
-		_set_tiles	2813
-		.init_vram	282C
-		.init_wtt	283A
-		.init_btt	284A
-		.init_tt	2858
+		_scroll_bkg	1B94
+		__mulschar	1BAA
+		__muluchar	1BAA
+		__mulsint	1BB6
+		__muluint	1BB6
+		.mulu16	1BCA
+		.mul16	1BCA
+		.mv_sprite	1BE0
+		_move_sprite	1BEF
+		_set_win_data	1BFC
+		_set_bkg_data	1BFC
+		_set_sprite_data	1C49
+		.scroll_sprite	1C78
+		_scroll_sprite	1C89
+		.padup	1C96
+		_waitpadup	1C96
+		.jpad	1CA6
+		.wait_pad	1CD3
+		_joypad	1CDA
+		_waitpad	1CDF
+		.set_sprite_tile	1CE9
+		_set_sprite_tile	1CF6
+		.delay	1D01
+		_delay	1D3B
+		_initrand	1D44
+		.initrand	1D46
+		.copy_vram	1D4F
+		_get_data	1D5E
+		_set_data	1D5E
+		_set_bkg_tiles	1D71
+		__modslong	1D85
+		__divslong	1D85
+		__mulslong	1D85
+		__divschar	1D86
+		__modschar	1D92
+		__divsint	1D9D
+		__modsint	1DAE
+		__divuchar	1DBD
+		__moduchar	1DC9
+		__divuint	1DD4
+		__moduint	1DE5
+		.mod8	1DF4
+		.div8	1DF4
+		.mod16	1DFC
+		.div16	1DFC
+		.modu8	1E32
+		.divu8	1E32
+		.modu16	1E35
+		.divu16	1E35
+		font_copy_uncompressed	1E72
+		font_copy_compressed	1EA8
+		font_load	1EFD
+		font_copy_current	1F45
+		font_set	1F8D
+		.put_char	1F9A
+		.out_char	1FB3
+		.del_char	1FBA
+		_font_load	2015
+		_font_set	2023
+		_font_init	2032
+		_cls	2054
+		.cls	2054
+		.cr_curs	2086
+		.adv_curs	209B
+		.tmode	20F7
+		.tmode_out	2120
+		_font_load_ibm_fixed	2130
+		_font_ibm_fixed	2137
+		_font_ibm_fixed_tiles	2239
+		.gmode	2A39
+		.vbl	2A9B
+		.lcd	2AA6
+		.draw_image	2AB3
+		.switch_data	2ABD
+		_switch_data	2AF4
+		_draw_image	2B0F
+		.y_table	2B22
+		.set_xy_wtt	2C42
+		.set_xy_btt	2C53
+		.set_xy_tt	2C62
+		_set_tiles	2C93
+		.init_vram	2CAC
+		.init_wtt	2CBA
+		.init_btt	2CCA
+		.init_tt	2CD8
 AREA _LIT
 	RADIX HEX
-	BASE 285E
+	BASE 2CDE
 	SIZE 0000
 	ATTRIB REL CON
 AREA _GSINIT
 	RADIX HEX
-	BASE 285E
-	SIZE 34E6
+	BASE 2CDE
+	SIZE 3ADC
 	ATTRIB REL CON
 	GLOBALS
-		gsinit	285E
+		gsinit	2CDE
 AREA _GSINITTAIL
 	RADIX HEX
-	BASE 5D44
+	BASE 67BA
 	SIZE 0001
 	ATTRIB REL CON
 AREA _GSFINAL
 	RADIX HEX
-	BASE 5D45
+	BASE 67BB
 	SIZE 0000
 	ATTRIB REL CON
 AREA _DATA
 	RADIX HEX
 	BASE C0A0
-	SIZE 0918
+	SIZE 0A16
 	ATTRIB REL CON
 	GLOBALS
 		_blank_Dungeon_Room	C0A0
 		_dungeon_Map_Sprites	C208
-		_character_With_A_Hat	C228
-		_can_The_Player_Move	C248
-		_index_Top_Left_X	C249
-		_index_Top_Left_Y	C24B
-		_tile_Index_Top_Left	C24D
-		_player_Position	C24F
-		_player_Starting_Position	C253
-		_direction	C257
-		_background_Scroller_Map	C258
-		_has_Count_Been_Reset	C960
-		_map_Array	C961
-		_current_Position_In_Room	C965
-		_current_Position_On_Map	C967
-		_itlx	C969
-		_itly	C96B
-		_returned_Map_Height	C96D
-		_returned_Map_Width	C96F
-		_size_Of_Map	C971
-		_map_Index_Array	C973
-		_position_On_Map	C9A5
-		_room_Height_Array	C9A9
-		_room_Width_Array	C9AD
-		_tile_Counter	C9B1
-		_scroll_X	C9B2
-		_i	C9B3
-		_temporary_A	C9B4
-		_temporary_B	C9B5
-		_counter	C9B6
+		_dungeon_Room_One	C228
+		_dungeon_Room_Two	C628
+		_character_With_A_Hat	CA28
+		_can_The_Player_Move	CA48
+		_has_Players_Position_Been_Set	CA49
+		_index_Top_Left_X	CA4A
+		_index_Top_Left_Y	CA4C
+		_tile_Index_Top_Left	CA4E
+		_player_Position	CA50
+		_player_Starting_Position	CA54
+		_direction	CA58
+		_can_The_Screen_Transition	CA59
+		_has_Count_Been_Reset	CA5A
+		_has_Player_Been_Updated	CA5B
+		_map_Array	CA5C
+		_current_Position_In_Room	CA62
+		_current_Position_On_Map	CA64
+		_itlx	CA66
+		_itly	CA68
+		_returned_Map_Height	CA6A
+		_returned_Map_Width	CA6C
+		_scroll_X	CA6E
+		_scroll_Y	CA70
+		_size_Of_Map	CA72
+		_map_Index_Array	CA74
+		_position_On_Map	CAA6
+		_room_Height_Array	CAAA
+		_room_Width_Array	CAB0
 AREA _BSS
 	RADIX HEX
-	BASE C9B8
+	BASE CAB6
 	SIZE 0089
 	ATTRIB REL CON
 	GLOBALS
-		__cpu	C9B8
-		.mode	C9B9
-		__io_out	C9BA
-		__io_in	C9BB
-		__io_status	C9BC
-		.vbl_done	C9BD
-		__current_bank	C9BE
-		_sys_time	C9BF
-		.sys_time	C9BF
-		.int_0x40	C9C1
-		.int_0x48	C9D1
-		.int_0x50	C9E1
-		.int_0x58	C9F1
-		.int_0x60	CA01
-		.randhi	CA11
-		.randlo	CA12
-		font_current	CA16
-		font_first_free_tile	CA19
-		font_table	CA1A
-		.curx	CA2C
-		.cury	CA2D
-		.fg_colour	CA2E
-		.bg_colour	CA2F
+		__cpu	CAB6
+		.mode	CAB7
+		__io_out	CAB8
+		__io_in	CAB9
+		__io_status	CABA
+		.vbl_done	CABB
+		__current_bank	CABC
+		_sys_time	CABD
+		.sys_time	CABD
+		.int_0x40	CABF
+		.int_0x48	CACF
+		.int_0x50	CADF
+		.int_0x58	CAEF
+		.int_0x60	CAFF
+		.randhi	CB0F
+		.randlo	CB10
+		font_current	CB14
+		font_first_free_tile	CB17
+		font_table	CB18
+		.curx	CB2A
+		.cury	CB2B
+		.fg_colour	CB2C
+		.bg_colour	CB2D
 AREA _HEAP
 	RADIX HEX
-	BASE CA41
+	BASE CB3F
 	SIZE 0000
 	ATTRIB REL CON
 	GLOBALS
-		_malloc_heap_start	CA41
+		_malloc_heap_start	CB3F
 AREA _OVERLAY
 	RADIX HEX
-	BASE CA41
+	BASE CB3F
 	SIZE 0000
 	ATTRIB REL CON
 AREA _ISEG
 	RADIX HEX
-	BASE CA41
+	BASE CB3F
 	SIZE 0000
 	ATTRIB REL CON
 AREA _BSEG
 	RADIX HEX
-	BASE CA41
+	BASE CB3F
 	SIZE 0000
 	ATTRIB REL CON
 AREA _XSEG
 	RADIX HEX
-	BASE CA41
+	BASE CB3F
 	SIZE 0000
 	ATTRIB REL CON
 AREA _SFR
@@ -412,7 +414,7 @@ MODULES
 	FILE C:\Users\s189074\Desktop\Complex_Game_Systems\gbdk\lib/small/asxxxx/gb/crt0.o
 		NAME Runtime
 	FILE main.o
-		NAME lcc143680
+		NAME lcc183000
 LIBRARIES
 	LIBRARY C:\Users\s189074\Desktop\Complex_Game_Systems\gbdk\lib/small/asxxxx/gb/gb.lib
 		MODULE sfr.o
