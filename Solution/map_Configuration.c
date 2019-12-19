@@ -11,7 +11,7 @@
 
 #include "map_Library.h"
 
-BOOLEAN can_The_Screen_Transition = TRUE;
+BOOLEAN can_The_Screen_Transition = FALSE;
 BOOLEAN has_Count_Been_Reset = FALSE;
 BOOLEAN has_Player_Been_Updated = FALSE;
 
@@ -62,7 +62,7 @@ void convert_Room_Position(int _player_Position[], int _width_Of_Room){
 
     current_Position_In_Room = _width_Of_Room * itly + itlx;
 
-    // printf("position_In_Room = [%d][%d] = room_Tile_Index(%d)\n", itlx, itly, titl);
+    // printf("position_In_Room = [%d][%d] = current_Position_In_Room(%d)\n", itlx, itly, current_Position_In_Room);
 }
 
 // Move the player, then move the background
@@ -71,8 +71,6 @@ void move_Background(int _activation_Distance, unsigned char *_data){
     int a_D_Counter = 0;
 
     convert_Room_Position(player_Position, room_Width_Array[map_Index_Array[current_Position_On_Map]]);
-
-    if(!has_Player_Been_Updated){ has_Player_Been_Updated = TRUE; update_Player(itlx, itly); }
 
     wait_vbl_done();
 
@@ -83,47 +81,64 @@ void move_Background(int _activation_Distance, unsigned char *_data){
             else{ printf("There are no tiles ahead of the player.\n\n"); }
             delay(500);
         }
-        printf("\nCurrent Position In Room: %d\n\n", current_Position_In_Room);
+        // printf("\nCurrent Position In Room: %d\n\n", current_Position_In_Room);
+        // printf("\nindex_Top_Left_X: %d\n\n", index_Top_Left_X);
+        printf("Current Position In The Room  = %d\n", current_Position_In_Room);
     }
 
     switch(joypad()){
+        case J_DOWN:
+            // If the player is within activation distance, check if any of the tiles ahead of the player, are not being currently occupied
+            if(index_Top_Left_Y > 17 - _activation_Distance && index_Top_Left_Y < 18){
+                for(a_D_Counter = 0; a_D_Counter < _activation_Distance; a_D_Counter++){ 
+                if(_data[current_Position_In_Room + (room_Width_Array[map_Index_Array[current_Position_On_Map]] * a_D_Counter)] != blankmap[0]){ can_The_Screen_Transition = FALSE; delay(1); }
+                else if(_data[current_Position_In_Room + (room_Width_Array[map_Index_Array[current_Position_On_Map]] * a_D_Counter)] == blankmap[0] && can_The_Screen_Transition == FALSE){ can_The_Screen_Transition = TRUE; }
+                }
+                // If the tiles ahead of the player are not occupied at the moment
+                // TODO WORK ON THIUS PART
+                if(!can_The_Screen_Transition){ if(_data[current_Position_In_Room + room_Width_Array[map_Index_Array[current_Position_On_Map]]] == blankmap[0]){ enable_Movement(TRUE); } }
+                else if(can_The_Screen_Transition){ enable_Movement(FALSE); player_Position[1] += 8; scroll_bkg(0, 8); }
+            }
+            
+            if(_data[current_Position_In_Room - 1] != blankmap[0]){ enable_Movement(FALSE); }
+            else{ enable_Movement(TRUE); }
+            
+            can_The_Screen_Transition = FALSE;
+        break;
         case J_LEFT:
-            // printf("Current Position In Room = %d", current_Position_In_Room);
-            // Check if the player is at the left edge of the screen first
-            if(/*itlx*/ index_Top_Left_X < _activation_Distance){
-                // If the player is within activation distance, check if any of the tiles ahead of the player are not being occupied
-                for(a_D_Counter; a_D_Counter < _activation_Distance; a_D_Counter++){ if(_data[current_Position_In_Room - a_D_Counter] != blankmap[0] && can_The_Screen_Transition != FALSE){ /* printf("Player Position = [%d][%d]\n", player_Position[0], player_Position[1]); */ can_The_Screen_Transition = FALSE; } }
-                // If there are no tiles being occupied
-                if(can_The_Screen_Transition){ enable_Movement(FALSE); player_Position[0] -= 8; scroll_bkg( -8, 0 ); }
-                can_The_Screen_Transition = TRUE;
-                // And if there any tiles on the player's path, then stop the background from scrolling and allow the player to move
+            // If the player is within activation distance, check if any of the tiles ahead of the player, are not being currently occupied
+            if(index_Top_Left_X < _activation_Distance){
+                for(a_D_Counter = 0; a_D_Counter < _activation_Distance; a_D_Counter++){ 
+                if(_data[current_Position_In_Room - a_D_Counter] != blankmap[0]){ can_The_Screen_Transition = FALSE; delay(1); }
+                else if(_data[current_Position_In_Room - a_D_Counter] == blankmap[0] && can_The_Screen_Transition == FALSE){ can_The_Screen_Transition = TRUE; }
+                }
+                // If the tiles ahead of the player are not occupied at the moment
+                if(!can_The_Screen_Transition){ if(_data[current_Position_In_Room - 1] == blankmap[0]){ enable_Movement(TRUE); } }
+                else if(can_The_Screen_Transition){ enable_Movement(FALSE); player_Position[0] -= 8; scroll_bkg(-8, 0); }
             }
-            else{
-                if(_data[current_Position_In_Room - 1] != blankmap[0]){ enable_Movement(FALSE); }
-                else{ enable_Movement(TRUE); }
-            }
+            
+            if(_data[current_Position_In_Room - 1] != blankmap[0]){ enable_Movement(FALSE); }
+            else{ enable_Movement(TRUE); }
+            
+            can_The_Screen_Transition = FALSE;
         break;
         case J_RIGHT:
             // Check if the player is currently at the right edge of the screen first
-            //printf("is index_Top_Left_X(%d) bigger than %d?\n", index_Top_Left_X, 20 - _activation_Distance - 1);
-            if(index_Top_Left_X > 19 - _activation_Distance /* 20 - _activation_Distance - 1 */ && index_Top_Left_X < 20){
+            if(index_Top_Left_X > 19 - _activation_Distance && index_Top_Left_X < 20){
                 // If the player is within activation distance, check if any of the tiles ahead of the player, are not being currently occupied
-                for(a_D_Counter = 0; a_D_Counter < _activation_Distance; a_D_Counter++){ if(_data[current_Position_In_Room + a_D_Counter] != blankmap[0]){ printf("Hey Buddy!, you reached the end of the line...\n"); } }
+                for(a_D_Counter = 0; a_D_Counter < _activation_Distance; a_D_Counter++){ 
+                    if(_data[current_Position_In_Room + a_D_Counter] != blankmap[0]){ can_The_Screen_Transition = FALSE; delay(1); }
+                    else if(_data[current_Position_In_Room + a_D_Counter] == blankmap[0] && can_The_Screen_Transition == FALSE){ can_The_Screen_Transition = TRUE; }
+                }
                 // If the tiles ahead of the player are not occupied at the moment
-                if(can_The_Screen_Transition){ enable_Movement(FALSE); player_Position[0] += 8; scroll_bkg(8, 0); }
-                can_The_Screen_Transition = TRUE;
+                if(!can_The_Screen_Transition){ if(_data[current_Position_In_Room + 1] == blankmap[0]){ enable_Movement(TRUE); } }
+                else if(can_The_Screen_Transition){ enable_Movement(FALSE); player_Position[0] += 8; scroll_bkg(8, 0); }
             }
-            else{ 
-                if(_data[current_Position_In_Room + 1] != blankmap[0]){ enable_Movement(FALSE); }
-                else{ enable_Movement(TRUE); } 
-            }
-
-            // if(itlx > 20 - _activation_Distance - 1 && itlx < 20){
-            //     enable_Movement(FALSE);
-            //     scroll_bkg(8, 0);
-            //     scroll_X += 1;
-            // }
-            // else{ enable_Movement(TRUE); }
+            
+            if(_data[current_Position_In_Room + 1] != blankmap[0]){ enable_Movement(FALSE); }
+            else{ enable_Movement(TRUE); }
+            
+            can_The_Screen_Transition = FALSE;
         break;
     }
 
