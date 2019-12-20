@@ -1,0 +1,76 @@
+#include <gb/gb.h>
+#include <rand.h>
+
+#include "dungeon_Item_Sprites.c"
+#include "dungeon_Item_Tileset.c"
+
+typedef struct door_Object{
+    // Where is this door located corresponding to the map
+    UINT8 map_Index;
+    // In the room, the door would be position...
+    UINT8 door_Position[2];
+} door_Object;
+
+const char blank_Tile[1] = {0x00};
+
+// Will keep track of what door we are currently at
+int door_Counter = 0, index_Counter = 0;
+int position_Marker = 0;
+int returned_X_Value = 0, returned_Y_Value = 0;
+
+// Will take a copy of the selected array
+UINT16 copied_Array[1024];
+
+// Maximum number of doors to be positioned in a 5 x 5 (25 rooms)map.
+door_Object d_O_Array[81];
+
+void door_Initilization(int _current_Position_On_Map, int _position_X, int _position_Y, door_Object *_d_O, unsigned char *_map_Index_Array){
+    _d_O->door_Position[0] = _position_X; _d_O->door_Position[1] = _position_Y;
+    _d_O->map_Index = _map_Index_Array[_current_Position_On_Map];
+}
+
+// When the map gets initialized, information on door placement will be noted.
+void door_Placement_Initilization(unsigned char *_map_Array, unsigned char *_map_Index_Array, unsigned char *_room_Height_Array, unsigned char *_room_Width_Array, int _current_Position_On_Map, int _returned_Map_Width, int _size_Of_Map){
+    set_bkg_data(0, 5, dungeon_Item_Sprites);
+
+    // Check for rooms below the current room
+    if(_map_Array[_map_Index_Array[_current_Position_On_Map] + _returned_Map_Width] != NULL){ 
+        // Place a door (Bottom Arrow)
+        returned_X_Value = randw() % _room_Width_Array[_current_Position_On_Map]; returned_Y_Value = randw() % _room_Height_Array[_current_Position_On_Map]; 
+        position_Marker = _room_Width_Array[_current_Position_On_Map] * returned_Y_Value + returned_X_Value;
+        
+        get_bkg_tiles(0, 0, _room_Width_Array[_current_Position_On_Map], _room_Height_Array[_current_Position_On_Map], copied_Array);
+        
+        while(copied_Array[position_Marker] != blank_Tile[0]){
+            returned_X_Value = randw() % _room_Width_Array[_current_Position_On_Map]; returned_Y_Value = randw() % _room_Height_Array[_current_Position_On_Map]; 
+            position_Marker = _room_Width_Array[_current_Position_On_Map] * returned_Y_Value + returned_X_Value;
+        }
+        set_bkg_tiles(returned_X_Value, returned_Y_Value, 1, 1, &dungeon_Item_Tileset[1]);
+        // Record information on the door's properties
+        door_Initilization(_current_Position_On_Map, returned_X_Value, returned_Y_Value, d_O_Array[door_Counter], _map_Index_Array[0]);
+        door_Counter += 1;
+    }
+
+    // // Starting at X room, check if any rooms avaliable around x. (Down, Left, Right, Up)
+    // for(index_Counter = 0; index_Counter < _size_Of_Map; index_Counter++){
+    //     // Check for rooms below the current room
+    //     if(_map_Array[_map_Index_Array[_current_Position_On_Map] + _returned_Map_Width] != NULL){ 
+    //         // Place a door (Bottom Arrow)
+    //         returned_X_Value = randw() % _room_Width_Array[_current_Position_On_Map]; returned_Y_Value = randw() % _room_Height_Array[_current_Position_On_Map]; 
+    //         position_Marker = _room_Width_Array[_current_Position_On_Map] * returned_Y_Value + returned_X_Value;
+            
+    //         get_bkg_tiles(0, 0, _room_Width_Array[_current_Position_On_Map], _room_Height_Array[_current_Position_On_Map], copied_Array)
+            
+    //         while(copied_Array[position_Marker] != blank_Tile[0]){
+    //             returned_X_Value = randw() % _room_Width_Array[_current_Position_On_Map]; returned_Y_Value = randw() % _room_Height_Array[_current_Position_On_Map]; 
+    //             position_Marker = _room_Width_Array[_current_Position_On_Map] * returned_Y_Value + returned_X_Value;
+    //         }
+    //         set_bkg_tiles(returned_X_Value, returned_Y_Value, 1, 1, &dungeon_Item_Tileset[1]);
+    //         // Record information on the door's properties
+    //         door_Initilization(returned_X_Value, returned_Y_Value, d_O_Array[door_Counter], _map_Index_Array[index_Counter]);
+    //         door_Counter += 1;
+    //     }
+    // }
+}
+
+// When making rooms, you have to keep track of how many rooms are being created and how many doors are being placed in each specific room

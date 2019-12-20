@@ -12,8 +12,6 @@
 #include "map_Library.h"
 
 BOOLEAN can_The_Screen_Transition = FALSE;
-BOOLEAN has_Count_Been_Reset = FALSE;
-BOOLEAN has_Player_Been_Updated = FALSE;
 
 char *map_Array[] = { blank_Dungeon_Room, dungeon_Room_One, dungeon_Room_Two };
 
@@ -27,11 +25,8 @@ int itlx = 0;
 int itly = 0;
 int returned_Map_Height = 0;
 int returned_Map_Width = 0;
-// Scroll X / Y - Keep track of how many times the player has scrolled the screen on the x / y axis
-int scroll_X = 0, scroll_Y = 0;
+int size_Of_Current_Room = 0;
 int size_Of_Map = 0;
-// tile_Index_Top_Left = titl
-// int titl = 0;
 
 int map_Index_Array[MAX_HEIGHT * MAX_WIDTH];
 // Position On Map[0] = X position on map, Position On Map[1] = Y position on map;
@@ -74,33 +69,40 @@ void move_Background(int _activation_Distance, unsigned char *_data){
 
     wait_vbl_done();
 
+    // Debug
     if(joypad() & J_A){
         for(a_D_Counter = 0; a_D_Counter < _activation_Distance; a_D_Counter++){
             // If the next two tiles ahead of the player are occupied
-            if(_data[current_Position_In_Room + a_D_Counter] != blankmap[0]){ printf("There are tiles ahead of the player.\n"); } 
-            else{ printf("There are no tiles ahead of the player.\n\n"); }
+            // if(_data[current_Position_In_Room + a_D_Counter] != blankmap[0]){ printf("There are tiles ahead of the player.\n"); } 
+            if(_data[current_Position_In_Room + (room_Width_Array[map_Index_Array[current_Position_On_Map]] * a_D_Counter)] != blankmap[0]){ printf("There are tiles ahead of the player. (titl = %d)\n\n", current_Position_In_Room + (room_Width_Array[map_Index_Array[current_Position_On_Map]] * a_D_Counter)); }
+            else{ printf("There are no tiles ahead of the player. (titl = %d)\n\n", current_Position_In_Room + (room_Width_Array[map_Index_Array[current_Position_On_Map]] * a_D_Counter)); }
             delay(500);
         }
         // printf("\nCurrent Position In Room: %d\n\n", current_Position_In_Room);
         // printf("\nindex_Top_Left_X: %d\n\n", index_Top_Left_X);
-        printf("Current Position In The Room  = %d\n", current_Position_In_Room);
+        // printf("Current Position In The Room  = %d\n", current_Position_In_Room);
+        // printf("Size of the current room = %d", size_Of_Current_Room);
+        printf ("Is %d bigger than %d(size of the room)?", current_Position_In_Room + (room_Width_Array[map_Index_Array[current_Position_On_Map]] * 2), size_Of_Current_Room);
     }
 
     switch(joypad()){
         case J_DOWN:
             // If the player is within activation distance, check if any of the tiles ahead of the player, are not being currently occupied
             if(index_Top_Left_Y > 17 - _activation_Distance && index_Top_Left_Y < 18){
-                for(a_D_Counter = 0; a_D_Counter < _activation_Distance; a_D_Counter++){ 
-                if(_data[current_Position_In_Room + (room_Width_Array[map_Index_Array[current_Position_On_Map]] * a_D_Counter)] != blankmap[0]){ can_The_Screen_Transition = FALSE; delay(1); }
-                else if(_data[current_Position_In_Room + (room_Width_Array[map_Index_Array[current_Position_On_Map]] * a_D_Counter)] == blankmap[0] && can_The_Screen_Transition == FALSE){ can_The_Screen_Transition = TRUE; }
+                // When checking the tiles in front of the player, make sure the next tile checked, is not bigger than the size of the current map. (If checking outside of the map's range, will always show as there is an empty tile).
+                if(current_Position_In_Room + (room_Width_Array[map_Index_Array[current_Position_On_Map]] * 2) < size_Of_Current_Room) { 
+                    for(a_D_Counter = 0; a_D_Counter < _activation_Distance; a_D_Counter++){
+                        if(_data[current_Position_In_Room + (room_Width_Array[map_Index_Array[current_Position_On_Map]] * a_D_Counter)] != blankmap[0]){ can_The_Screen_Transition = FALSE; delay(1); }
+                        else if(_data[current_Position_In_Room + (room_Width_Array[map_Index_Array[current_Position_On_Map]] * a_D_Counter)] == blankmap[0]){ can_The_Screen_Transition = TRUE; }
+                    }
+                
+                    // If the tiles ahead of the player are not occupied at the moment
+                    if(!can_The_Screen_Transition){ if(_data[current_Position_In_Room + room_Width_Array[map_Index_Array[current_Position_On_Map]]] == blankmap[0]){ enable_Movement(TRUE); } }
+                    else if(can_The_Screen_Transition){ enable_Movement(FALSE); player_Position[1] += 8; scroll_bkg(0, 8); }
                 }
-                // If the tiles ahead of the player are not occupied at the moment
-                // TODO WORK ON THIUS PART
-                if(!can_The_Screen_Transition){ if(_data[current_Position_In_Room + room_Width_Array[map_Index_Array[current_Position_On_Map]]] == blankmap[0]){ enable_Movement(TRUE); } }
-                else if(can_The_Screen_Transition){ enable_Movement(FALSE); player_Position[1] += 8; scroll_bkg(0, 8); }
             }
-            
-            if(_data[current_Position_In_Room - 1] != blankmap[0]){ enable_Movement(FALSE); }
+
+            if(_data[current_Position_In_Room + room_Width_Array[map_Index_Array[current_Position_On_Map]]] != blankmap[0]){ enable_Movement(FALSE); }
             else{ enable_Movement(TRUE); }
             
             can_The_Screen_Transition = FALSE;
@@ -109,9 +111,10 @@ void move_Background(int _activation_Distance, unsigned char *_data){
             // If the player is within activation distance, check if any of the tiles ahead of the player, are not being currently occupied
             if(index_Top_Left_X < _activation_Distance){
                 for(a_D_Counter = 0; a_D_Counter < _activation_Distance; a_D_Counter++){ 
-                if(_data[current_Position_In_Room - a_D_Counter] != blankmap[0]){ can_The_Screen_Transition = FALSE; delay(1); }
-                else if(_data[current_Position_In_Room - a_D_Counter] == blankmap[0] && can_The_Screen_Transition == FALSE){ can_The_Screen_Transition = TRUE; }
+                    if(_data[current_Position_In_Room - a_D_Counter] != blankmap[0]){ can_The_Screen_Transition = FALSE; delay(1); }
+                    else if(_data[current_Position_In_Room - a_D_Counter] == blankmap[0]){ can_The_Screen_Transition = TRUE; }
                 }
+
                 // If the tiles ahead of the player are not occupied at the moment
                 if(!can_The_Screen_Transition){ if(_data[current_Position_In_Room - 1] == blankmap[0]){ enable_Movement(TRUE); } }
                 else if(can_The_Screen_Transition){ enable_Movement(FALSE); player_Position[0] -= 8; scroll_bkg(-8, 0); }
@@ -130,6 +133,7 @@ void move_Background(int _activation_Distance, unsigned char *_data){
                     if(_data[current_Position_In_Room + a_D_Counter] != blankmap[0]){ can_The_Screen_Transition = FALSE; delay(1); }
                     else if(_data[current_Position_In_Room + a_D_Counter] == blankmap[0] && can_The_Screen_Transition == FALSE){ can_The_Screen_Transition = TRUE; }
                 }
+
                 // If the tiles ahead of the player are not occupied at the moment
                 if(!can_The_Screen_Transition){ if(_data[current_Position_In_Room + 1] == blankmap[0]){ enable_Movement(TRUE); } }
                 else if(can_The_Screen_Transition){ enable_Movement(FALSE); player_Position[0] += 8; scroll_bkg(8, 0); }
@@ -140,84 +144,29 @@ void move_Background(int _activation_Distance, unsigned char *_data){
             
             can_The_Screen_Transition = FALSE;
         break;
+        case J_UP:
+            // If the player is within activation distance, check if any of the tiles ahead of the player, are not being currently occupied
+            if(index_Top_Left_Y <= _activation_Distance){
+                // When checking the tiles in front of the player, make sure the next tile checked, is not bigger than the size of the current map. (If checking outside of the map's range, will always show as there is an empty tile).
+                if(current_Position_In_Room - (room_Width_Array[map_Index_Array[current_Position_On_Map]] * 2) > 0) { 
+                    for(a_D_Counter = 0; a_D_Counter < _activation_Distance; a_D_Counter++){
+                    
+                    if(_data[current_Position_In_Room - (room_Width_Array[map_Index_Array[current_Position_On_Map]] * a_D_Counter)] != blankmap[0]){ can_The_Screen_Transition = FALSE; delay(1); }
+                    else if(_data[current_Position_In_Room - (room_Width_Array[map_Index_Array[current_Position_On_Map]] * a_D_Counter)] == blankmap[0]){ can_The_Screen_Transition = TRUE; }
+                }
+                
+                // If the tiles ahead of the player are not occupied at the moment
+                if(!can_The_Screen_Transition){ if(_data[current_Position_In_Room - room_Width_Array[map_Index_Array[current_Position_On_Map]]] == blankmap[0]){ enable_Movement(TRUE); } }
+                else if(can_The_Screen_Transition){ enable_Movement(FALSE); player_Position[1] -= 8; scroll_bkg(0, -8); }
+                }
+            }
+
+            if(_data[current_Position_In_Room - room_Width_Array[map_Index_Array[current_Position_On_Map]]] != blankmap[0]){ enable_Movement(FALSE); }
+            else{ enable_Movement(TRUE); }
+            
+            can_The_Screen_Transition = FALSE;
+        break;
     }
-
-    // // **********************--------------------------------------------**********************
-    // BOOLEAN refresh_Map = FALSE;
-
-    // int size_Of_Current_Room = 0;
-    // // Tile Index Top Left = titl (Note: titl's range would only be between 0 - 359)
-    // int titl = 0;
-
-    // // Window Position[0] = X Position in current window, Window Position[1] = Y Position in current window
-    // int window_Position[2] = { 0, 0 };
-
-    // UINT8 counter_X = 0;
-    // UINT8 counter_Y = 0;
-
-    // // One tall and twenty wide
-    // unsigned char one_By_Twenty_Tile_Section[20];
-
-    // window_Position[0] = index_Top_Left_X; window_Position[1] = index_Top_Left_Y;
-
-    // // Get the player's current position by converting their position[2] into an integer(tile index)
-    // convert_Room_Position(_player_Position, room_Width_Array[map_Index_Array[current_Position_On_Map]]);
-    // titl = current_Position_In_Room;
-
-    // // Check if the player's tile index (if we add the width of the current room) is (not?) null in the current room's index
-    // switch(_direction){
-    //     // TODO: If spawn in a corner and can shift avaliable, since player is too close to edge, will not shift / update.
-    //     if(window_Position[0] < 1){ window_Position[0] = 1; } else if(window_Position[0] > 18) { window_Position[0] = 18; }
-    //     if(window_Position[1] < 1){ window_Position[1] = 1; } else if(window_Position[1] > 16) { window_Position[1] = 16; }
-
-    //     // Down = 0
-    //     case 0:
-    //         // Check if the x-axis can be shifted to the bottom
-    //         if(_data[titl + room_Width_Array[map_Index_Array[current_Position_On_Map]]] != NULL){ 
-    //             // Ways to move the BACKGROUND!!!
-    //                 // 1. Call scroll_bkg
-    //                     // - Easiest method, but if using a large map, would cut it off (can't find a fix (I have no idea why))
-    //                 // 2. Creating a new char array and just having the updated map as what you would like to display
-    //                     // - Seems doable but, for some reason, I suppose when you create a map in the GameBoy Map Designer, it adds some special thing when creating a map so when you try to make a duplicate of it, does not work.
-    //                 // 3. 
-    //             //
-
-    //             set_bkg_tiles(0, 1, 1, 1, _data+20);
-    //         }
-    //         //else {  };
-    //     break;
-    //     // Left = 1
-    //     case 1:
-    //         // Check if the x-axis can be shifted to the left
-    //         if(index_Top_Left_X <= 4 && _data[titl - _distance_Before_Activation] != NULL){
-    //             printf("Where do you think your going partner?\n");
-    //             // for(size_Of_Current_Room = 0; size_Of_Current_Room < 360; size_Of_Current_Room++){
-    //             //     set_bkg_tiles(0, 8, 20, 18, _data);
-    //             //     //counter_X += 8;
-    //             //     //if(counter_X == 160){ counter_X = 8; counter_Y += 8; }
-    //             // }
-    //         }
-    //     break;
-    //     // Right = 2
-    //     case 2:
-    //         // Check if the x-axis can be shifted to the right
-    //         if(index_Top_Left_X <= room_Width_Array[map_Index_Array[current_Position_On_Map]] - 5 && _data[titl + _distance_Before_Activation] != NULL){
-    //             printf("Where do you think your going partner?\n");
-    //         }
-    //     break;
-    //     // Up = 4
-    //     case 4:
-    //         // Check if the x-axis can be shifted to the top
-    //         if(_data[titl - room_Width_Array[map_Index_Array[current_Position_On_Map]]] != NULL){
-    //             printf("Where do you think your going partner?\n");
-    //         }
-    //     break;
-    // }
-
-    // // if(_data[titl + room_Width_Array[map_Index_Array[current_Position_On_Map]]] != NULL){   // Note: NULL = 0x00?
-    // //     printf("Where do you think your going partner?\n");
-    // // } 
-    // // **********************--------------------------------------------**********************
 }
 
 // _height / _width - how many rooms to create
@@ -253,6 +202,8 @@ void set_Map(int _height, int _width){
         }
     }
 
+    size_Of_Current_Room = room_Height_Array[map_Index_Array[0]] * room_Width_Array[map_Index_Array[0]];
+
     wait_vbl_done();
     disable_interrupts();
 
@@ -264,6 +215,7 @@ void set_Map(int _height, int _width){
     SWITCH_RAM_MBC1(2);
 
     set_bkg_data(0, 2, dungeon_Map_Sprites);
+    set_bkg_data(0, 7, dungeon_Item_Sprites);
 
     // Start off at the top left of the map
     set_bkg_tiles(0, 0, room_Width_Array[map_Index_Array[0]], room_Height_Array[map_Index_Array[0]], map_Array[map_Index_Array[0]]);
@@ -275,6 +227,8 @@ void set_Map(int _height, int _width){
     enable_interrupts();
 
     current_Position_On_Map = 0;
+    
+    door_Placement(map_Array[1], map_Index_Array, room_Height_Array, room_Width_Array, current_Position_On_Map, returned_Map_Width, size_Of_Map);
 }
 
 void swap_Room(int _direction){
@@ -300,6 +254,8 @@ void swap_Room(int _direction){
         if(position_On_Map[1] - 1 != 0){ position_On_Map[1] -= 1; }
     }
     current_Position_On_Map = convert_Map_Position(position_On_Map);
+    size_Of_Current_Room = room_Height_Array[map_Index_Array[current_Position_On_Map]] * room_Width_Array[map_Index_Array[current_Position_On_Map]];
+
     // Here, we would grab an integer value and check if its less than 0, change it to 0.
     set_bkg_tiles(0, 0, room_Width_Array[map_Index_Array[current_Position_On_Map]], room_Height_Array[map_Index_Array[current_Position_On_Map]], map_Array[map_Index_Array[current_Position_On_Map]]);
     delay(99);
