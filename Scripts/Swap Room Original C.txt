@@ -1,0 +1,28 @@
+void swap_Room(int _direction){
+    current_Position_On_Map = convert_Map_Position(position_On_Map);
+    size_Of_Current_Room = room_Height_Array[map_Index_Array[current_Position_On_Map]] * room_Width_Array[map_Index_Array[current_Position_On_Map]];
+
+    set_bkg_tiles(0, 0, room_Width_Array[map_Index_Array[current_Position_On_Map]], room_Height_Array[map_Index_Array[current_Position_On_Map]], map_Array[map_Index_Array[current_Position_On_Map]]);
+    delay(99);
+
+    Down = 0
+    if(_direction == 0){
+    	Check to see if next to bottom edge to map else, move down once
+        if(position_On_Map[1] < returned_Map_Height){ position_On_Map[1] += 1; }
+    }
+    // Left = 1
+    else if(_direction == 1){
+    	// Check to see if next to edge to map else, move left once
+        if(position_On_Map[0] - 1 != 0){ position_On_Map[0] -= 1; }
+    }
+    // Right = 2
+    else if(_direction == 2){
+        // Check to see if next to edge to map else, move right once
+        if(position_On_Map[0] < returned_Map_Width + 1){ position_On_Map[0] += 1; }
+    }
+    // Up = 3
+    else if(_direction == 3){
+        // Check to see if next to top edge to map else, move up once
+        if(position_On_Map[1] - 1 != 0){ position_On_Map[1] -= 1; }
+    }
+}

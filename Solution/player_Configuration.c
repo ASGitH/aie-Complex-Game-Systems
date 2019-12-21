@@ -1,3 +1,5 @@
+// GOAL: MAKE ALL GLOBAL VARIABLES A EXTERN (EXAMPLE: extern player_Position[2]) and put them all into a h file and in the library, put the h file in there.
+
 #include <gb/gb.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,7 +16,7 @@ int index_Top_Left_Y = 0;
 int tile_Index_Top_Left = 0;
 
 // Player Position[0] = X position in the current room, Player Position[1] = Y position in the current room;
-int player_Position[2];
+int player_Position[2] = {0, 0};
 int player_Starting_Position[2];
 
 UBYTE direction = 0;
@@ -44,6 +46,8 @@ void enable_Movement(BOOLEAN _can_The_Player_Move){
     }
 }
 
+// Original player's position = 16, 24
+// Make sure to Instantiate the Player AFTER you Set the Map
 void instantiate_Player(const char *_data /*, int _x_Position, int _y_Position --- enable only if you would like to spawn at a set position ---*/){
     BOOLEAN has_Empty_Tile_Been_Found = FALSE;
     int index_Counter = 0, index_Counter_X = 0, index_Counter_Y = 0;
@@ -92,17 +96,16 @@ void instantiate_Player(const char *_data /*, int _x_Position, int _y_Position -
     }
 }
 
-// When the background scrolls, move the player's position
-
+// Note: If two buttons are pressed at the same time (for example: down and left), the player will ignore all collision.
 void move_Player(){
     if(can_The_Player_Move){
         direction = joypad();
-        // Todo: Find a way not to hardcode in the size of map, maybe have a variable on top and set it in map config.c
         if(direction & J_DOWN && index_Top_Left_Y + 1 != 17){ index_Top_Left_Y += 1; player_Position[1] += 8; animate_Sprite(0, 0, 8); }
         else if(direction & J_LEFT && index_Top_Left_X - 1 != 0){ index_Top_Left_X -= 1; player_Position[0] -= 8; animate_Sprite(0, -8, 0); }
         else if(direction & J_RIGHT && index_Top_Left_X + 1 != 19){ index_Top_Left_X += 1; player_Position[0] += 8; animate_Sprite(0, 8, 0); }
         else if(direction & J_UP && index_Top_Left_Y - 1 != 0){ index_Top_Left_Y -= 1; player_Position[1] -= 8; animate_Sprite(0, 0, -8); }
     }
+    delay(99);
 }
 
 void update_Player(int _itlx, int _itly){

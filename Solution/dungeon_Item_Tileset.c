@@ -8,7 +8,7 @@
    Section       : 
    Bank          : 0
    Map size      : 8 x 1
-   Tile set      : C:\Users\s189074\Desktop\Complex_Game_Systems\Assets\GameBoy Tile Designer\dungeon_Item_Sprites.gbr
+   Tile set      : C:\Users\s189074\Desktop\Complex_Game_Systems\Assets\GameBoy Tile Designer\dungeon_Sprites.gbr
    Plane count   : 1 plane (8 bits)
    Plane order   : Tiles are continues
    Tile offset   : 0
@@ -24,7 +24,7 @@
 
 unsigned char dungeon_Item_Tileset[] =
 {
-  0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x00
+  0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07
 };
 
 /* End of DUNGEON_ITEM_TILESET.C */
