@@ -1,5 +1,3 @@
-// GOAL: MAKE ALL GLOBAL VARIABLES A EXTERN (EXAMPLE: extern player_Position[2]) and put them all into a h file and in the library, put the h file in there.
-
 #include <gb/gb.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,6 +5,7 @@
 #include "character_With_A_Hat.c"
 
 BOOLEAN can_The_Player_Move = TRUE;
+BOOLEAN has_Empty_Tile_Been_Found = FALSE;
 BOOLEAN has_Players_Position_Been_Set = FALSE;
 
 const char empty_Tile[1] = {0x00};
@@ -15,6 +14,10 @@ int index_Top_Left_X = 0;
 int index_Top_Left_Y = 0;
 int tile_Index_Top_Left = 0;
 
+// When the player is loaded into the current map, their starting position, will be recorded to reset them back based on current_Position_On_Map
+// Also based on the number of maps avaliable
+// instantiated_Position_On_Map[] = X position on current map, [] = y position on current map
+int instantiated_Position_On_Map[2][2];
 // Player Position[0] = X position in the current room, Player Position[1] = Y position in the current room;
 int player_Position[2] = {0, 0};
 int player_Starting_Position[2];
@@ -49,15 +52,15 @@ void enable_Movement(BOOLEAN _can_The_Player_Move){
 // Original player's position = 16, 24
 // Make sure to Instantiate the Player AFTER you Set the Map
 void instantiate_Player(const char *_data /*, int _x_Position, int _y_Position --- enable only if you would like to spawn at a set position ---*/){
-    BOOLEAN has_Empty_Tile_Been_Found = FALSE;
     int index_Counter = 0, index_Counter_X = 0, index_Counter_Y = 0;
 
-    set_sprite_data(0, 2, character_With_A_Hat);
-    set_sprite_tile(0, 1);
+    // When changing maps, make sure to reset all values
+    index_Top_Left_X = 0; index_Top_Left_Y = 0;
+    player_Position[0] = 0; player_Position[1] = 0;
 
     // When the map has been set, check that the current avaliable tile is not being occupied, if so, move on to the next one.
     if(!has_Players_Position_Been_Set){
-        for(index_Counter; index_Counter < 360; index_Counter++){
+        for(index_Counter = 0; index_Counter < 360; index_Counter++){
             if(_data[index_Top_Left_X + (32 * index_Top_Left_Y)] != empty_Tile[0] && !has_Empty_Tile_Been_Found){
                 // player_Position[0] += 8;
                 index_Top_Left_X += 1;
@@ -87,13 +90,11 @@ void instantiate_Player(const char *_data /*, int _x_Position, int _y_Position -
                 player_Starting_Position[0] = player_Position[0];
                 player_Starting_Position[1] = player_Position[1];
 
-                set_sprite_data(0, 2, character_With_A_Hat);
-                set_sprite_tile(0, 1);
-
                 move_sprite(0, player_Position[0], player_Position[1]);
             }
         }
     }
+    // printf("p_P[0] = %d\np_P[1] = %d\np_P_I_R = %d\n", index_Top_Left_X, index_Top_Left_Y, 32 * index_Top_Left_Y + index_Top_Left_X);
 }
 
 // Note: If two buttons are pressed at the same time (for example: down and left), the player will ignore all collision.

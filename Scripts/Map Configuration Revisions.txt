@@ -56,3 +56,517 @@ int counter = 0;
             }
         }
         //set_bkg_tiles(itlx + counter, itly, 1, 1, _data[current_Position_Index + counter]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Latest revision
+// Ctrl + Shift + B = Build
+
+// MAX_HEIGHT * MAX_WIDTH = 25 (Limit of rooms)
+#define MAX_HEIGHT 5
+#define MAX_WIDTH 5
+
+#include <gb/gb.h>
+#include <rand.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "dungeon_Item_Tileset.c"
+#include "dungeon_Sprites.c"
+
+#include "map_Library.h"
+
+typedef struct door_Object{
+    // Where is this door located corresponding to the map
+    UINT8 map_Index;
+    // In the room, the door would be position...
+    UINT8 door_Position[2];
+
+    // What direction this object will lead to
+    unsigned char direction;
+} door_Object;
+
+BOOLEAN can_The_Screen_Transition = FALSE;
+
+char *map_Array[] = { dungeon_Room_One, dungeon_Room_Two };
+
+const char blankmap[1] = {0x00};
+const char blank_Tile[1] = {0x00};
+
+// Maximum number of doors to be positioned in a 5 x 5 (25 rooms)map.
+door_Object d_O_Array[81];
+
+int current_Position_In_Room = 0;
+int current_Position_On_Map = 0;
+// Current Position On Map = C.P.O.M.
+int c_P_O_M = 0;
+// Will keep track of what door we are currently at
+int door_Counter = 0;
+// index_Top_Left_X = itlx
+int itlx = 0;
+// index_Top_Left_Y = itly
+int itly = 0;
+int position_Marker = 0, temporary_Position_Marker = 0;
+int returned_Map_Height = 0;
+int returned_Map_Width = 0;
+int size_Of_Current_Room = 0;
+int size_Of_Map = 0;
+int returned_X_Value = 0, temporary_Returned_X_Value = 0, returned_Y_Value = 0, temporary_Returned_Y_Value = 0;
+// Width Checker equals one because you can't have a map with zero in any of the dimensions
+int width_Checker = 1;
+
+int map_Index_Array[MAX_HEIGHT * MAX_WIDTH];
+// Position On Map[0] = X position on map, Position On Map[1] = Y position on map;
+int position_On_Map[2] = {1, 1};
+// room_Height / room_Width array has a provided height and width, each array will hardcode the height and width for each room
+// rHAWA[0] = blank_Dungeon_Room, rHAWA[1] = test_Map
+int room_Height_Array[2] = { 32, 32 };
+int room_Width_Array[2] = { 32, 32 };
+
+int door_Object_Stored_Positions_X[4], door_Object_Stored_Positions_Y[4];
+
+unsigned char directional_Array[4];
+
+// Takes in the current position on the map (Position On Map[2]), and converts the value into the index corresponding to the Map Index Array
+int convert_Map_Position(int _map_Position[]){
+    int x_Position_Counter = 0;
+    int y_Position_Counter = 0;
+    int map_Index_Counter = 0;
+
+    for(y_Position_Counter = 0; y_Position_Counter < _map_Position[1] - 1; y_Position_Counter++){ map_Index_Counter += returned_Map_Width; }
+    for(x_Position_Counter = 0; x_Position_Counter <= _map_Position[0] - 1; x_Position_Counter++){ map_Index_Counter += 1; }
+
+    // printf("position_On_Map[%d][%d] = map_Index_Array[%d] = %d\n", position_On_Map[0], position_On_Map[1], map_Index_Counter, map_Index_Array[map_Index_Counter - 1]);
+
+    return(map_Index_Counter);
+}
+
+// Takes in the player's current position, and converts the value into the index corresponding to current tile relative to it's position in the current room
+void convert_Room_Position(int _player_Position[], int _width_Of_Room){
+    itlx = (_player_Position[0] - 8) / 8;
+    itly = (_player_Position[1] - 16) / 8;
+
+    current_Position_In_Room = _width_Of_Room * itly + itlx;
+
+    // printf("position_In_Room = [%d][%d] = current_Position_In_Room(%d)\n", itlx, itly, current_Position_In_Room);
+}
+
+void door_Initilization(int _current_Position_On_Map, int _position_X, int _position_Y, door_Object *_d_O, unsigned char _direction, unsigned char *_map_Index_Array){
+    _d_O->door_Position[0] = _position_X; _d_O->door_Position[1] = _position_Y;
+    _d_O->direction = _direction;
+    _d_O->map_Index = _map_Index_Array[_current_Position_On_Map];
+}
+
+// When the map gets initialized, information on door placement will be noted. (Keep track of how many rooms are being created and how many doors are being placed in each specific room)
+// Note: I forgot that I am setting the bkg tiles which means that each loop will keep setting the tile. I need to only set it for the current map.
+void door_Placement(door_Object *_door_Object_Array, int *_map_Index_Array, int _returned_Map_Width, unsigned char *_data, unsigned char *_room_Height_Array, unsigned char *_room_Width_Array){
+    c_P_O_M = current_Position_On_Map;
+
+    for(door_Counter = 0; door_Counter < 81; door_Counter++){
+        _door_Object_Array[door_Counter].door_Position[0] = -1; _door_Object_Array[door_Counter].door_Position[1] = -1;
+        _door_Object_Array[door_Counter].direction = 'a';
+        _door_Object_Array[door_Counter].map_Index = -1;
+    }
+
+    door_Counter = 0;
+
+    // Set all the values in the _door_Object_Array to null. This will come in handy later on when checking for door placement.
+    // This is because when the current room is checking to see if any other rooms are avaliable, if the next door_Object is null,
+    // that means that the door is not in use.
+    // Will check the current room to see if it's in use
+    // Check for rooms below the current room
+    if(_map_Index_Array[c_P_O_M + _returned_Map_Width] != -1 /* && c_P_O_M + _returned_Map_Width < 25 */){
+        // printf("There is a room below this one");
+        // Place a door (Bottom Arrow)
+        temporary_Returned_X_Value = randw() % _room_Width_Array[c_P_O_M]; temporary_Returned_Y_Value = randw() % _room_Height_Array[c_P_O_M]; 
+        // printf("R.X.V = %d R.Y.V = %d\n", returned_X_Value, returned_Y_Value);
+        temporary_Position_Marker = _room_Width_Array[c_P_O_M] * temporary_Returned_Y_Value + temporary_Returned_X_Value;
+        // printf("Position Marker = %d\n", position_Marker);
+        while(_data[temporary_Position_Marker] != blank_Tile[0]){
+            temporary_Returned_X_Value = randw() % _room_Width_Array[c_P_O_M]; temporary_Returned_Y_Value = randw() % _room_Height_Array[c_P_O_M]; 
+            temporary_Position_Marker = _room_Width_Array[c_P_O_M] * temporary_Returned_Y_Value + temporary_Returned_X_Value;
+            
+            // printf("R.X.V = %d R.Y.V = %d\n", temporary_Returned_X_Value, temporary_Returned_Y_Value);
+            // printf("Position Marker = %d\n", temporary_Position_Marker);
+            // delay(250);
+        
+            if(temporary_Position_Marker == 0){ break; }
+
+            // For some unknown reason, this loop while repeat forever even though it should break out
+            // To fix this, we need to save the last piece of information and set the targets to that information
+            returned_X_Value = temporary_Returned_X_Value; returned_Y_Value = temporary_Returned_Y_Value; position_Marker = temporary_Position_Marker;
+        }
+        // When the map gets set up for the first time, this will only place the door tiles on the first map.
+        if(c_P_O_M == current_Position_On_Map){ set_bkg_tiles(returned_X_Value, returned_Y_Value, 1, 1, &dungeon_Item_Tileset[/*6*/2]); }           
+        
+        // Record information on the door's properties
+        door_Initilization(c_P_O_M, returned_X_Value, returned_Y_Value, &_door_Object_Array[door_Counter], 'd', _map_Index_Array[c_P_O_M]); 
+        
+        // printf("_door_Object_Array[%d]->door_Position[x] = %d\n", door_Counter, _door_Object_Array[door_Counter].door_Position[0]);
+        // printf("_door_Object_Array[%d]->door_Position[y] = %d\n", door_Counter, _door_Object_Array[door_Counter].door_Position[1]);
+        // printf("_door_Object_Array[%d]->map_Index = %d\n", door_Counter, _door_Object_Array[door_Counter].map_Index);
+
+        door_Counter += 1;
+    }
+
+    // Check for rooms to the left of the current room
+    // && _current_Position_On_Map - 1 != -1 (Makes sure that the current_Position_On_Map counter does not go out of bounds)
+    if(_map_Index_Array[c_P_O_M - 1] != -1 && c_P_O_M - 1 != -1){
+        // printf("There is a room to the left of this one");
+        // Place a door (Left Arrow)
+        temporary_Returned_X_Value = randw() % _room_Width_Array[c_P_O_M]; temporary_Returned_Y_Value = randw() % _room_Height_Array[c_P_O_M]; 
+        // printf("R.X.V = %d R.Y.V = %d\n", returned_X_Value, returned_Y_Value);
+        temporary_Position_Marker = _room_Width_Array[c_P_O_M] * temporary_Returned_Y_Value + temporary_Returned_X_Value;
+        // printf("Position Marker = %d\n", position_Marker);
+        while(_data[temporary_Position_Marker] != blank_Tile[0]){
+            temporary_Returned_X_Value = randw() % _room_Width_Array[c_P_O_M]; temporary_Returned_Y_Value = randw() % _room_Height_Array[c_P_O_M]; 
+            temporary_Position_Marker = _room_Width_Array[c_P_O_M] * temporary_Returned_Y_Value + temporary_Returned_X_Value;
+            
+            // printf("R.X.V = %d R.Y.V = %d\n", temporary_Returned_X_Value, temporary_Returned_Y_Value);
+            // printf("Position Marker = %d\n", temporary_Position_Marker);
+            // delay(250);
+        
+            if(temporary_Position_Marker == 0){ break; }
+
+            // For some unknown reason, this loop while repeat forever even though it should break out
+            // To fix this, we need to save the last piece of information and set the targets to that information
+            returned_X_Value = temporary_Returned_X_Value; returned_Y_Value = temporary_Returned_Y_Value; position_Marker = temporary_Position_Marker;
+        }
+        if(c_P_O_M == current_Position_On_Map){ set_bkg_tiles(returned_X_Value, returned_Y_Value, 1, 1, &dungeon_Item_Tileset[3]); }
+        
+        // Record information on the door's properties
+        door_Initilization(c_P_O_M, returned_X_Value, returned_Y_Value, &_door_Object_Array[door_Counter], 'l', _map_Index_Array[c_P_O_M]);
+
+        // printf("_door_Object_Array[%d]->door_Position[x] = %d\n", door_Counter, _door_Object_Array[door_Counter].door_Position[0]);
+        // printf("_door_Object_Array[%d]->door_Position[y] = %d\n", door_Counter, _door_Object_Array[door_Counter].door_Position[1]);
+        // printf("_door_Object_Array[%d]->map_Index = %d\n", door_Counter, _door_Object_Array[door_Counter].map_Index);
+
+        door_Counter += 1;
+    }
+
+    // Check for rooms to the right of the current room
+    if(_map_Index_Array[c_P_O_M + 1] != -1 && c_P_O_M + 1 < 25 && width_Checker + 1 < _returned_Map_Width){
+        // printf("There is a room to the right of this one");
+        // Place a door (Right Arrow)
+        temporary_Returned_X_Value = randw() % _room_Width_Array[c_P_O_M]; temporary_Returned_Y_Value = randw() % _room_Height_Array[c_P_O_M]; 
+        // printf("R.X.V = %d R.Y.V = %d\n", returned_X_Value, returned_Y_Value);
+        temporary_Position_Marker = _room_Width_Array[c_P_O_M] * temporary_Returned_Y_Value + temporary_Returned_X_Value;
+        // printf("Position Marker = %d\n", position_Marker);
+        while(_data[temporary_Position_Marker] != blank_Tile[0]){
+            temporary_Returned_X_Value = randw() % _room_Width_Array[c_P_O_M]; temporary_Returned_Y_Value = randw() % _room_Height_Array[c_P_O_M]; 
+            temporary_Position_Marker = _room_Width_Array[c_P_O_M] * temporary_Returned_Y_Value + temporary_Returned_X_Value;
+            
+            // printf("R.X.V = %d R.Y.V = %d\n", temporary_Returned_X_Value, temporary_Returned_Y_Value);
+            // printf("Position Marker = %d\n", temporary_Position_Marker);
+            // delay(250);
+        
+            if(temporary_Position_Marker == 0){ break; }
+
+            // For some unknown reason, this loop while repeat forever even though it should break out
+            // To fix this, we need to save the last piece of information and set the targets to that information
+            returned_X_Value = temporary_Returned_X_Value; returned_Y_Value = temporary_Returned_Y_Value; position_Marker = temporary_Position_Marker;
+        }
+        if(c_P_O_M == current_Position_On_Map){ set_bkg_tiles(returned_X_Value, returned_Y_Value, 1, 1, &dungeon_Item_Tileset[4]); }
+
+        // Record information on the door's properties
+        door_Initilization(c_P_O_M, returned_X_Value, returned_Y_Value, &_door_Object_Array[door_Counter], 'r', _map_Index_Array[c_P_O_M]);
+
+        // printf("_door_Object_Array[%d]->door_Position[x] = %d\n", door_Counter, _door_Object_Array[door_Counter].door_Position[0]);
+        // printf("_door_Object_Array[%d]->door_Position[y] = %d\n", door_Counter, _door_Object_Array[door_Counter].door_Position[1]);
+        // printf("_door_Object_Array[%d]->map_Index = %d\n", door_Counter, _door_Object_Array[door_Counter].map_Index);
+
+        door_Counter += 1;
+    }
+
+    // Check for any rooms to the top of the current room
+    if(_map_Index_Array[c_P_O_M - _returned_Map_Width] != -1 && c_P_O_M - _returned_Map_Width > 0){
+        // printf("There is a room on top of this one");
+        // Place a door (Top Arrow)
+        temporary_Returned_X_Value = randw() % _room_Width_Array[c_P_O_M]; temporary_Returned_Y_Value = randw() % _room_Height_Array[c_P_O_M]; 
+        // printf("R.X.V = %d R.Y.V = %d\n", returned_X_Value, returned_Y_Value);
+        temporary_Position_Marker = _room_Width_Array[c_P_O_M] * temporary_Returned_Y_Value + temporary_Returned_X_Value;
+        // printf("Position Marker = %d\n", position_Marker);
+        while(_data[temporary_Position_Marker] != blank_Tile[0]){
+            temporary_Returned_X_Value = randw() % _room_Width_Array[c_P_O_M]; temporary_Returned_Y_Value = randw() % _room_Height_Array[c_P_O_M]; 
+            temporary_Position_Marker = _room_Width_Array[c_P_O_M] * temporary_Returned_Y_Value + temporary_Returned_X_Value;
+            
+            // printf("R.X.V = %d R.Y.V = %d\n", temporary_Returned_X_Value, temporary_Returned_Y_Value);
+            // printf("Position Marker = %d\n", temporary_Position_Marker);
+            // delay(250);
+        
+            if(temporary_Position_Marker == 0){ break; }
+
+            // For some unknown reason, this loop while repeat forever even though it should break out
+            // To fix this, we need to save the last piece of information and set the targets to that information
+            returned_X_Value = temporary_Returned_X_Value; returned_Y_Value = temporary_Returned_Y_Value; position_Marker = temporary_Position_Marker;
+        }
+        if(c_P_O_M == current_Position_On_Map){ set_bkg_tiles(returned_X_Value, returned_Y_Value, 1, 1, &dungeon_Item_Tileset[5]); }
+        
+        // Record information on the door's properties
+        door_Initilization(c_P_O_M, returned_X_Value, returned_Y_Value, &_door_Object_Array[door_Counter], 'u', _map_Index_Array[c_P_O_M]);
+
+        // printf("_door_Object_Array[%d]->door_Position[x] = %d\n", door_Counter, _door_Object_Array[door_Counter].door_Position[0]);
+        // printf("_door_Object_Array[%d]->door_Position[y] = %d\n", door_Counter, _door_Object_Array[door_Counter].door_Position[1]);
+        // printf("_door_Object_Array[%d]->map_Index = %d\n", door_Counter, _door_Object_Array[door_Counter].map_Index);
+
+        door_Counter += 1;
+    }
+    c_P_O_M += 1;
+    //printf("c.P.O.M = %d\n", c_P_O_M);
+
+    // We are gonna be changing _current_Position_On_Map, so when all the doors have been set up, make sure to reset it back to Zero ( =
+    c_P_O_M = 0;
+}
+
+// Move the player, then move the background
+void move_Background(int _activation_Distance, int *_player_Position, unsigned char *_data){
+    // TODO: Fix Index_Top_Left X / Y: Radical amount off, like 20000?
+    int a_D_Counter = 0;
+
+    convert_Room_Position(_player_Position, room_Width_Array[map_Index_Array[current_Position_On_Map]]);
+    //printf("current_Position_In_Room = %d\n", current_Position_In_Room);
+
+    wait_vbl_done();
+
+    // Debug
+    if(joypad() & J_A){
+        // for(a_D_Counter = 0; a_D_Counter < _activation_Distance; a_D_Counter++){
+        //     // If the next two tiles ahead of the player are occupied
+        //     // if(_data[current_Position_In_Room + a_D_Counter] != blankmap[0]){ printf("There are tiles ahead of the player.\n"); } 
+        //     if(_data[current_Position_In_Room + (room_Width_Array[map_Index_Array[current_Position_On_Map]] * a_D_Counter)] != blankmap[0]){ printf("There are tiles ahead of the player. (titl = %d)\n\n", current_Position_In_Room + (room_Width_Array[map_Index_Array[current_Position_On_Map]] * a_D_Counter)); }
+        //     else{ printf("There are no tiles ahead of the player. (titl = %d)\n\n", current_Position_In_Room + (room_Width_Array[map_Index_Array[current_Position_On_Map]] * a_D_Counter)); }
+        //     delay(500);
+        // }
+        // printf("\nCurrent Position In Room: %d\n\n", current_Position_In_Room);
+        // printf("\nindex_Top_Left_X: %d\n\n", index_Top_Left_X);
+        // printf("\nindex_Top_Left_Y: %d\n\n", index_Top_Left_Y);
+        // printf("Current Position In The Room  = %d\n", current_Position_In_Room);
+        // printf("Size of the current room = %d", size_Of_Current_Room);
+        // printf ("Is %d bigger than %d(size of the room)?", current_Position_In_Room + (room_Width_Array[map_Index_Array[current_Position_On_Map]] * 2), size_Of_Current_Room);
+    }
+
+    switch(joypad()){
+        case J_DOWN:
+            // If the player is within activation distance, check if any of the tiles ahead of the player, are not being currently occupied
+            if(index_Top_Left_Y > 17 - _activation_Distance && index_Top_Left_Y < 18){
+                // When checking the tiles in front of the player, make sure the next tile checked, is not bigger than the size of the current map. (If checking outside of the map's range, will always show as there is an empty tile).
+                if(current_Position_In_Room + (room_Width_Array[map_Index_Array[current_Position_On_Map]] * 2) < size_Of_Current_Room) { 
+                    for(a_D_Counter = 0; a_D_Counter < _activation_Distance; a_D_Counter++){
+                        if(_data[current_Position_In_Room + (room_Width_Array[map_Index_Array[current_Position_On_Map]] * a_D_Counter)] != blankmap[0]){ can_The_Screen_Transition = FALSE; delay(1); }
+                        else if(_data[current_Position_In_Room + (room_Width_Array[map_Index_Array[current_Position_On_Map]] * a_D_Counter)] == blankmap[0]){ can_The_Screen_Transition = TRUE; }
+                    }
+                
+                    // If the tiles ahead of the player are not occupied at the moment
+                    if(!can_The_Screen_Transition){ if(_data[current_Position_In_Room + room_Width_Array[map_Index_Array[current_Position_On_Map]]] == blankmap[0]){ enable_Movement(TRUE); } }
+                    else if(can_The_Screen_Transition){ enable_Movement(FALSE); player_Position[1] += 8; scroll_bkg(0, 8); }
+                }
+            }
+
+            if(_data[current_Position_In_Room + room_Width_Array[map_Index_Array[current_Position_On_Map]]] != blankmap[0]){ enable_Movement(FALSE); }
+            else{ enable_Movement(TRUE); }
+            
+            can_The_Screen_Transition = FALSE;
+        break;
+        case J_LEFT:
+            // If the player is within activation distance, check if any of the tiles ahead of the player, are not being currently occupied
+            if(index_Top_Left_X < _activation_Distance){
+                for(a_D_Counter = 0; a_D_Counter < _activation_Distance; a_D_Counter++){ 
+                    if(_data[current_Position_In_Room - a_D_Counter] != blankmap[0]){ can_The_Screen_Transition = FALSE; delay(1); }
+                    else if(_data[current_Position_In_Room - a_D_Counter] == blankmap[0]){ can_The_Screen_Transition = TRUE; }
+                }
+
+                // If the tiles ahead of the player are not occupied at the moment
+                if(!can_The_Screen_Transition){ if(_data[current_Position_In_Room - 1] == blankmap[0]){ enable_Movement(TRUE); } }
+                else if(can_The_Screen_Transition){ enable_Movement(FALSE); player_Position[0] -= 8; scroll_bkg(-8, 0); }
+            }
+            
+            if(_data[current_Position_In_Room - 1] != blankmap[0]){ enable_Movement(FALSE); }
+            else{ enable_Movement(TRUE); }
+            
+            can_The_Screen_Transition = FALSE;
+        break;
+        case J_RIGHT:
+            // Check if the player is currently at the right edge of the screen first
+            if(index_Top_Left_X > 19 - _activation_Distance && index_Top_Left_X < 20){
+                // If the player is within activation distance, check if any of the tiles ahead of the player, are not being currently occupied
+                for(a_D_Counter = 0; a_D_Counter < _activation_Distance; a_D_Counter++){ 
+                    if(_data[current_Position_In_Room + a_D_Counter] != blankmap[0]){ can_The_Screen_Transition = FALSE; delay(1); }
+                    else if(_data[current_Position_In_Room + a_D_Counter] == blankmap[0] && can_The_Screen_Transition == FALSE){ can_The_Screen_Transition = TRUE; }
+                }
+
+                // If the tiles ahead of the player are not occupied at the moment
+                if(!can_The_Screen_Transition){ if(_data[current_Position_In_Room + 1] == blankmap[0]){ enable_Movement(TRUE); } }
+                else if(can_The_Screen_Transition){ enable_Movement(FALSE); player_Position[0] += 8; scroll_bkg(8, 0); }
+            }
+            
+            if(_data[current_Position_In_Room + 1] != blankmap[0]){ enable_Movement(FALSE); }
+            else{ enable_Movement(TRUE); }
+            
+            can_The_Screen_Transition = FALSE;
+        break;
+        case J_UP:
+            // If the player is within activation distance, check if any of the tiles ahead of the player, are not being currently occupied
+            if(index_Top_Left_Y <= _activation_Distance){
+                // When checking the tiles in front of the player, make sure the next tile checked, is not bigger than the size of the current map. (If checking outside of the map's range, will always show as there is an empty tile).
+                if(current_Position_In_Room - (room_Width_Array[map_Index_Array[current_Position_On_Map]] * 2) > 0) { 
+                    for(a_D_Counter = 0; a_D_Counter < _activation_Distance; a_D_Counter++){
+                    
+                    if(_data[current_Position_In_Room - (room_Width_Array[map_Index_Array[current_Position_On_Map]] * a_D_Counter)] != blankmap[0]){ can_The_Screen_Transition = FALSE; delay(1); }
+                    else if(_data[current_Position_In_Room - (room_Width_Array[map_Index_Array[current_Position_On_Map]] * a_D_Counter)] == blankmap[0]){ can_The_Screen_Transition = TRUE; }
+                }
+                
+                // If the tiles ahead of the player are not occupied at the moment
+                if(!can_The_Screen_Transition){ if(_data[current_Position_In_Room - room_Width_Array[map_Index_Array[current_Position_On_Map]]] == blankmap[0]){ enable_Movement(TRUE); } }
+                else if(can_The_Screen_Transition){ enable_Movement(FALSE); player_Position[1] -= 8; scroll_bkg(0, -8); }
+                }
+            }
+
+            if(_data[current_Position_In_Room - room_Width_Array[map_Index_Array[current_Position_On_Map]]] != blankmap[0]){ enable_Movement(FALSE); }
+            else{ enable_Movement(TRUE); }
+            
+            can_The_Screen_Transition = FALSE;
+        break;
+    }
+}
+
+// Plan: Make a int array that will take in two ints, x and y and for the current room the player is in, check the to see if the player is in
+// the same position (index) as the door(make sure to only grab the doors that belong to the current room)
+// ONLY CALL THIS FUNCTION AT THE START OF THE SCENE, AND WHEN YOU CHANGE ROOMS
+void retrieve_D_O_Information(door_Object *_door_Object_Array, int _current_Position_On_Map, int _integer_Array_X[], int _integer_Array_Y[], unsigned char *_directional_Array){
+    int index_Counter = 0;
+    int integer_Counter = 0;
+
+    printf("d_O_Array[index_Counter].map_Index = %d\n", _door_Object_Array[index_Counter].map_Index);
+    // printf("current_Position_On_Map = %d\n", current_Position_On_Map);
+
+    // Your gonna need an two-dimensional array. The max amount of columns you can have are 2 (x and y).
+    // Your also gonna need another array to keep track of what direction, that door is leading.
+    // The max amount of doors per room are four.
+    for(index_Counter = 0; index_Counter < 4; index_Counter++){ _integer_Array_X[index_Counter] = -1; _integer_Array_Y[index_Counter] = -1; }
+
+    // Afterwards, your gonna need to check the d_O array and grab the door's information based on the current room
+    for(index_Counter = 0; index_Counter < 81; index_Counter++){
+        if(d_O_Array[index_Counter].map_Index == _current_Position_On_Map){
+            _directional_Array[integer_Counter] = d_O_Array[index_Counter].direction;
+
+            _integer_Array_X[integer_Counter] = d_O_Array[index_Counter].door_Position[0];
+            _integer_Array_Y[integer_Counter] = d_O_Array[index_Counter].door_Position[1];
+            integer_Counter += 1;
+        }
+    }
+}
+
+// Will grab the door_Object's information and reinstantiate based on the current room
+// void[] retrieve_D_O_To_Reinstantiate_Room(){}
+
+// _height / _width - how many rooms to create
+void set_Map(int _height, int _width){
+    int index_Counter = 0;
+    int selected_Number = 0;
+
+    // Set all the values in the map_Index_Array to negative one. This will come in handy later on when checking for door placement.
+    // This is because when the current room is checking to see if any other rooms are avaliable, if the next room is negative one,
+    // that means that the room is not in use.
+    for(index_Counter = 0; index_Counter < 25; index_Counter++){ map_Index_Array[index_Counter] = -1; }
+
+    returned_Map_Height = _height;
+    returned_Map_Width = _width;
+    size_Of_Map = _height * _width;
+
+    // TODO: Make sure the user can not put any negative numbers
+    // If size_Of_Map is bigger than MAX_HEIGHT * MAX_WIDTH, let the user know to choose a smaller set of dimensions
+    if(size_Of_Map > (MAX_HEIGHT * MAX_WIDTH) + 1){
+        printf("Error - Exceeding maximum capacity. Please reconfigure the amount of rooms.");
+        delay(99);
+        reset();
+    }
+    else if(size_Of_Map == 0){
+        printf("Error - Room size must be One or above. Please reconfigure the amount of rooms.");
+        delay(99);
+        reset();
+    }
+    else
+    {
+        for(index_Counter = 0; index_Counter < size_Of_Map; index_Counter++){
+            selected_Number = randw() % 2;
+            map_Index_Array[index_Counter] = selected_Number;
+            // map_Index_Array[0] = 1;
+            // map_Index_Array[1] = 1;
+            // map_Index_Array[2] = 0;
+            // map_Index_Array[3] = 1;
+            // printf("Selected Number: %d \n", selected_Number);
+        }
+    }
+    size_Of_Current_Room = room_Height_Array[map_Index_Array[0]] * room_Width_Array[map_Index_Array[0]];
+
+    wait_vbl_done();
+    disable_interrupts();
+
+    DISPLAY_OFF;
+    HIDE_BKG;
+    HIDE_SPRITES;
+    // HIDE_WIN;
+
+    SWITCH_RAM_MBC1(2);
+
+    set_bkg_data(0, 8, dungeon_Sprites);
+
+    // Start off at the top left of the map
+    set_bkg_tiles(0, 0, room_Width_Array[map_Index_Array[0]], room_Height_Array[map_Index_Array[0]], map_Array[map_Index_Array[0]]);
+
+    // After the map has been created, instantiate the player afterwards
+    instantiate_Player(map_Array[map_Index_Array[0]]);
+    update_Player(index_Top_Left_X, index_Top_Left_Y);
+
+    door_Placement(d_O_Array, map_Index_Array, returned_Map_Width, map_Array[map_Index_Array[current_Position_On_Map]], room_Height_Array, room_Width_Array);
+    retrieve_D_O_Information(d_O_Array, current_Position_On_Map, door_Object_Stored_Positions_X, door_Object_Stored_Positions_Y, directional_Array);
+
+    DISPLAY_ON;
+    SHOW_BKG;
+    SHOW_SPRITES;
+
+    enable_interrupts();
+
+    current_Position_On_Map = 0;
+    
+    // for(index_Counter = 0; index_Counter < 25; index_Counter++){ printf("Map Index Array[%d] = %d\n", index_Counter, map_Index_Array[index_Counter]); delay(250); }
+}
+
+// Update: Will no longer take in direction, will always check until the user steps on a specific tile based on their INDEX POSITION
+void swap_Room(/* door_Object *_door_Object_Array */){
+    BOOLEAN has_Map_Changed = FALSE;
+
+    // Down
+    if(index_Top_Left_X == door_Object_Stored_Positions_X[0] && index_Top_Left_Y == door_Object_Stored_Positions_Y[0]){ has_Map_Changed = TRUE; position_On_Map[1] += 1; }
+    // Left
+    else if(index_Top_Left_X == door_Object_Stored_Positions_X[1] && index_Top_Left_Y == door_Object_Stored_Positions_Y[1]){ has_Map_Changed = TRUE; position_On_Map[0] -= 1; }
+    // Right 
+    else if(index_Top_Left_X == door_Object_Stored_Positions_X[2] && index_Top_Left_Y == door_Object_Stored_Positions_Y[2]){ has_Map_Changed = TRUE; position_On_Map[0] += 1; }
+    // Down
+    else if(index_Top_Left_X == door_Object_Stored_Positions_X[3] && index_Top_Left_Y == door_Object_Stored_Positions_Y[3]){ has_Map_Changed = TRUE; position_On_Map[1] -= 1; }
+    
+    if(has_Map_Changed)
+    {
+        has_Map_Changed = FALSE;
+
+        current_Position_On_Map = convert_Map_Position(position_On_Map);
+        size_Of_Current_Room = room_Height_Array[map_Index_Array[current_Position_On_Map]] * room_Width_Array[map_Index_Array[current_Position_On_Map]];
+
+        set_bkg_tiles(0, 0, room_Width_Array[map_Index_Array[current_Position_On_Map]], room_Height_Array[map_Index_Array[current_Position_On_Map]], map_Array[map_Index_Array[current_Position_On_Map]]);
+        delay(99);
+    }
+}
+// Note: Somehow, find a way to have rooms within rooms, and before entering the room, be able to make that room not visible.
