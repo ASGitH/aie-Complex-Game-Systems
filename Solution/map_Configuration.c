@@ -77,33 +77,25 @@ void convert_Room_Position(int _player_Position[], int _width_Of_Room){
 
 // When the map gets initialized, information on door placement will be noted. (Keep track of how many rooms are being created and how many doors are being placed in each specific room)
 // Note: I forgot that I am setting the bkg tiles which means that each loop will keep setting the tile. I need to only set it for the current map.
-void door_Placement(int *_map_Index_Array, int _returned_Map_Width, unsigned char *_data, unsigned char *_room_Height_Array, unsigned char *_room_Width_Array){
+void door_Placement(int *_map_Index_Array, int _returned_Map_Width, unsigned char *_data){
     door_Counter = 0;
 
     // Will check the current room to see if it's in use
     // Check for rooms below the current room
     if(_map_Index_Array[current_Position_On_Map + _returned_Map_Width] != -1){
         // printf("There is a room below this one");
-        
-        // Place a door (Bottom Arrow)
-        temporary_Returned_X_Value = randw() % _room_Width_Array[current_Position_On_Map]; temporary_Returned_Y_Value = randw() % _room_Height_Array[current_Position_On_Map]; 
-        // printf("R.X.V = %d R.Y.V = %d\n", returned_X_Value, returned_Y_Value);
-        temporary_Position_Marker = _room_Width_Array[current_Position_On_Map] * temporary_Returned_Y_Value + temporary_Returned_X_Value;
-        // printf("Position Marker = %d\n", position_Marker);
-        while(_data[temporary_Position_Marker] != blankmap[0]){
-            temporary_Returned_X_Value = randw() % _room_Width_Array[current_Position_On_Map]; temporary_Returned_Y_Value = randw() % _room_Height_Array[current_Position_On_Map]; 
-            temporary_Position_Marker = _room_Width_Array[current_Position_On_Map] * temporary_Returned_Y_Value + temporary_Returned_X_Value;
-            
-            // printf("R.X.V = %d R.Y.V = %d\n", temporary_Returned_X_Value, temporary_Returned_Y_Value);
-            // printf("Position Marker = %d\n", temporary_Position_Marker);
-            // delay(250);
-        
-            if(temporary_Position_Marker == 0){ break; }
 
-            // For some unknown reason, this loop while repeat forever even though it should break out
-            // To fix this, we need to save the last piece of information and set the targets to that information
-            returned_X_Value = temporary_Returned_X_Value; returned_Y_Value = temporary_Returned_Y_Value; position_Marker = temporary_Position_Marker;
+        // Place a door (Bottom Arrow)
+        while(_data[temporary_Position_Marker] != blankmap[0]){
+            temporary_Returned_X_Value = randw() % 20; temporary_Returned_Y_Value = randw() % 20; 
+            // printf("R.X.V = %d R.Y.V = %d\n", temporary_Returned_X_Value, temporary_Returned_Y_Value);
+            temporary_Position_Marker = room_Width_Array[current_Position_On_Map] * temporary_Returned_Y_Value + temporary_Returned_X_Value;
+            // printf("Position Marker = %d\n", temporary_Position_Marker);
+            // delay(2500);
         }
+
+        returned_X_Value = temporary_Returned_X_Value; returned_Y_Value = temporary_Returned_Y_Value; position_Marker = temporary_Position_Marker;
+
         door_Position_In_Room[door_Counter] = position_Marker;
         // printf("door_Position_In_Room[%d] = %d\n", door_Counter, door_Position_In_Room[door_Counter]);
         
@@ -111,6 +103,8 @@ void door_Placement(int *_map_Index_Array, int _returned_Map_Width, unsigned cha
         set_bkg_tiles(returned_X_Value, returned_Y_Value, 1, 1, &dungeon_Item_Tileset[/*6*/2]);
 
         door_Counter += 1;
+
+        temporary_Returned_X_Value = 0; temporary_Returned_Y_Value = 0; temporary_Position_Marker = 0;
     }
 
     // Check for rooms to the left of the current room
@@ -119,24 +113,16 @@ void door_Placement(int *_map_Index_Array, int _returned_Map_Width, unsigned cha
         // printf("There is a room to the left of this one");
 
         // Place a door (Left Arrow)
-        temporary_Returned_X_Value = randw() % _room_Width_Array[current_Position_On_Map]; temporary_Returned_Y_Value = randw() % _room_Height_Array[current_Position_On_Map]; 
-        // printf("R.X.V = %d R.Y.V = %d\n", returned_X_Value, returned_Y_Value);
-        temporary_Position_Marker = _room_Width_Array[current_Position_On_Map] * temporary_Returned_Y_Value + temporary_Returned_X_Value;
-        // printf("Position Marker = %d\n", position_Marker);
         while(_data[temporary_Position_Marker] != blankmap[0]){
-            temporary_Returned_X_Value = randw() % _room_Width_Array[current_Position_On_Map]; temporary_Returned_Y_Value = randw() % _room_Height_Array[current_Position_On_Map]; 
-            temporary_Position_Marker = _room_Width_Array[current_Position_On_Map] * temporary_Returned_Y_Value + temporary_Returned_X_Value;
-            
+            temporary_Returned_X_Value = randw() % 20; temporary_Returned_Y_Value = randw() % 20; 
             // printf("R.X.V = %d R.Y.V = %d\n", temporary_Returned_X_Value, temporary_Returned_Y_Value);
+            temporary_Position_Marker = room_Width_Array[current_Position_On_Map] * temporary_Returned_Y_Value + temporary_Returned_X_Value;
             // printf("Position Marker = %d\n", temporary_Position_Marker);
-            // delay(250);
-        
-            if(temporary_Position_Marker == 0){ break; }
-
-            // For some unknown reason, this loop while repeat forever even though it should break out
-            // To fix this, we need to save the last piece of information and set the targets to that information
-            returned_X_Value = temporary_Returned_X_Value; returned_Y_Value = temporary_Returned_Y_Value; position_Marker = temporary_Position_Marker;
+            // delay(2500);
         }
+
+        returned_X_Value = temporary_Returned_X_Value; returned_Y_Value = temporary_Returned_Y_Value; position_Marker = temporary_Position_Marker;
+
         door_Position_In_Room[door_Counter] = position_Marker;
         // printf("door_Position_In_Room[%d] = %d\n", door_Counter, door_Position_In_Room[door_Counter]);
         
@@ -144,38 +130,34 @@ void door_Placement(int *_map_Index_Array, int _returned_Map_Width, unsigned cha
         set_bkg_tiles(returned_X_Value, returned_Y_Value, 1, 1, &dungeon_Item_Tileset[3]);
 
         door_Counter += 1;
+
+        temporary_Returned_X_Value = 0; temporary_Returned_Y_Value = 0; temporary_Position_Marker = 0;
     }
 
     // Check for rooms to the right of the current room
-    if(_map_Index_Array[current_Position_On_Map + 1] != -1 && current_Position_On_Map + 1 < 25 && width_Checker + 1 < _returned_Map_Width){
+    if(_map_Index_Array[current_Position_On_Map + 1] != -1 && current_Position_On_Map + 1 < 25 /* && width_Checker + 1 < _returned_Map_Width */){
         // printf("There is a room to the right of this one");
 
         // Place a door (Right Arrow)
-        temporary_Returned_X_Value = randw() % _room_Width_Array[current_Position_On_Map]; temporary_Returned_Y_Value = randw() % _room_Height_Array[current_Position_On_Map]; 
-        // printf("R.X.V = %d R.Y.V = %d\n", returned_X_Value, returned_Y_Value);
-        temporary_Position_Marker = _room_Width_Array[current_Position_On_Map] * temporary_Returned_Y_Value + temporary_Returned_X_Value;
-        // printf("Position Marker = %d\n", position_Marker);
         while(_data[temporary_Position_Marker] != blankmap[0]){
-            temporary_Returned_X_Value = randw() % _room_Width_Array[current_Position_On_Map]; temporary_Returned_Y_Value = randw() % _room_Height_Array[current_Position_On_Map]; 
-            temporary_Position_Marker = _room_Width_Array[current_Position_On_Map] * temporary_Returned_Y_Value + temporary_Returned_X_Value;
-            
+            temporary_Returned_X_Value = randw() % 20; temporary_Returned_Y_Value = randw() % 20; 
             // printf("R.X.V = %d R.Y.V = %d\n", temporary_Returned_X_Value, temporary_Returned_Y_Value);
+            temporary_Position_Marker = room_Width_Array[current_Position_On_Map] * temporary_Returned_Y_Value + temporary_Returned_X_Value;
             // printf("Position Marker = %d\n", temporary_Position_Marker);
-            // delay(250);
-        
-            if(temporary_Position_Marker == 0){ break; }
-
-            // For some unknown reason, this loop while repeat forever even though it should break out
-            // To fix this, we need to save the last piece of information and set the targets to that information
-            returned_X_Value = temporary_Returned_X_Value; returned_Y_Value = temporary_Returned_Y_Value; position_Marker = temporary_Position_Marker;
+            // delay(2500);
         }
+
+        returned_X_Value = temporary_Returned_X_Value; returned_Y_Value = temporary_Returned_Y_Value; position_Marker = temporary_Position_Marker;
+
         door_Position_In_Room[door_Counter] = position_Marker;
         // printf("door_Position_In_Room[%d] = %d\n", door_Counter, door_Position_In_Room[door_Counter]);
-        
+
         // When the map gets set up, this will only place the door tiles on the current map.
         set_bkg_tiles(returned_X_Value, returned_Y_Value, 1, 1, &dungeon_Item_Tileset[4]);
         
         door_Counter += 1;
+
+        temporary_Returned_X_Value = 0; temporary_Returned_Y_Value = 0; temporary_Position_Marker = 0;
     }
 
     // Check for any rooms to the top of the current room
@@ -183,24 +165,16 @@ void door_Placement(int *_map_Index_Array, int _returned_Map_Width, unsigned cha
         // printf("There is a room on top of this one");
 
         // Place a door (Top Arrow)
-        temporary_Returned_X_Value = randw() % _room_Width_Array[current_Position_On_Map]; temporary_Returned_Y_Value = randw() % _room_Height_Array[current_Position_On_Map]; 
-        // printf("R.X.V = %d R.Y.V = %d\n", returned_X_Value, returned_Y_Value);
-        temporary_Position_Marker = _room_Width_Array[current_Position_On_Map] * temporary_Returned_Y_Value + temporary_Returned_X_Value;
-        // printf("Position Marker = %d\n", position_Marker);
         while(_data[temporary_Position_Marker] != blankmap[0]){
-            temporary_Returned_X_Value = randw() % _room_Width_Array[current_Position_On_Map]; temporary_Returned_Y_Value = randw() % _room_Height_Array[current_Position_On_Map]; 
-            temporary_Position_Marker = _room_Width_Array[current_Position_On_Map] * temporary_Returned_Y_Value + temporary_Returned_X_Value;
-            
+            temporary_Returned_X_Value = randw() % 20; temporary_Returned_Y_Value = randw() % 20; 
             // printf("R.X.V = %d R.Y.V = %d\n", temporary_Returned_X_Value, temporary_Returned_Y_Value);
+            temporary_Position_Marker = room_Width_Array[current_Position_On_Map] * temporary_Returned_Y_Value + temporary_Returned_X_Value;
             // printf("Position Marker = %d\n", temporary_Position_Marker);
-            // delay(250);
-        
-            if(temporary_Position_Marker == 0){ break; }
-
-            // For some unknown reason, this loop while repeat forever even though it should break out
-            // To fix this, we need to save the last piece of information and set the targets to that information
-            returned_X_Value = temporary_Returned_X_Value; returned_Y_Value = temporary_Returned_Y_Value; position_Marker = temporary_Position_Marker;
+            // delay(2500);
         }
+
+        returned_X_Value = temporary_Returned_X_Value; returned_Y_Value = temporary_Returned_Y_Value; position_Marker = temporary_Position_Marker;
+
         door_Position_In_Room[door_Counter] = position_Marker;
         // printf("door_Position_In_Room[%d] = %d\n", door_Counter, door_Position_In_Room[door_Counter]);
         
@@ -208,6 +182,8 @@ void door_Placement(int *_map_Index_Array, int _returned_Map_Width, unsigned cha
         set_bkg_tiles(returned_X_Value, returned_Y_Value, 1, 1, &dungeon_Item_Tileset[5]);
 
         door_Counter += 1;
+
+        temporary_Returned_X_Value = 0; temporary_Returned_Y_Value = 0; temporary_Position_Marker = 0;
     }
 }
 
@@ -229,7 +205,7 @@ void move_Background(int _activation_Distance, int *_player_Position, unsigned c
         //     else{ printf("There are no tiles ahead of the player. (titl = %d)\n\n", current_Position_In_Room + (room_Width_Array[map_Index_Array[current_Position_On_Map]] * a_D_Counter)); }
         //     delay(500);
         // }
-        printf("\nCurrent Position In Room: %d\n\n", current_Position_In_Room);
+        // printf("\nCurrent Position In Room: %d\n\n", current_Position_In_Room);
         // printf("\nindex_Top_Left_X: %d\n\n", index_Top_Left_X);
         // printf("\nindex_Top_Left_Y: %d\n\n", index_Top_Left_Y);
         // printf("Current Position In The Room  = %d\n", current_Position_In_Room);
@@ -335,30 +311,16 @@ void set_Map(int _height, int _width){
     returned_Map_Width = _width;
     size_Of_Map = _height * _width;
 
-    // TODO: Make sure the user can not put any negative numbers
-    // If size_Of_Map is bigger than MAX_HEIGHT * MAX_WIDTH, let the user know to choose a smaller set of dimensions
-    if(size_Of_Map > (MAX_HEIGHT * MAX_WIDTH) + 1){
-        printf("Error - Exceeding maximum capacity. Please reconfigure the amount of rooms.");
-        delay(99);
-        reset();
+    for(index_Counter = 0; index_Counter < size_Of_Map; index_Counter++){
+        selected_Number = randw() % 2;
+        map_Index_Array[index_Counter] = selected_Number;
+        // map_Index_Array[0] = 1;
+        // map_Index_Array[1] = 1;
+        // map_Index_Array[2] = 0;
+        // map_Index_Array[3] = 1;
+        // printf("Selected Number: %d \n", selected_Number);
     }
-    else if(size_Of_Map == 0){
-        printf("Error - Room size must be One or above. Please reconfigure the amount of rooms.");
-        delay(99);
-        reset();
-    }
-    else
-    {
-        for(index_Counter = 0; index_Counter < size_Of_Map; index_Counter++){
-            selected_Number = randw() % 2;
-            map_Index_Array[index_Counter] = selected_Number;
-            // map_Index_Array[0] = 1;
-            // map_Index_Array[1] = 1;
-            // map_Index_Array[2] = 0;
-            // map_Index_Array[3] = 1;
-            // printf("Selected Number: %d \n", selected_Number);
-        }
-    }
+
     size_Of_Current_Room = room_Height_Array[map_Index_Array[0]] * room_Width_Array[map_Index_Array[0]];
 
     wait_vbl_done();
@@ -383,7 +345,7 @@ void set_Map(int _height, int _width){
     instantiate_Player(map_Array[map_Index_Array[0]]);
     update_Player(index_Top_Left_X, index_Top_Left_Y);
 
-    door_Placement(map_Index_Array, returned_Map_Width, map_Array[map_Index_Array[current_Position_On_Map]], room_Height_Array, room_Width_Array);
+    door_Placement(map_Index_Array, returned_Map_Width, map_Array[map_Index_Array[0]]);
 
     DISPLAY_ON;
     SHOW_BKG;
@@ -415,10 +377,10 @@ void swap_Room(){
 
         current_Position_On_Map = convert_Map_Position(position_On_Map);
         size_Of_Current_Room = room_Height_Array[map_Index_Array[current_Position_On_Map]] * room_Width_Array[map_Index_Array[current_Position_On_Map]];
-
-        door_Placement(map_Index_Array, returned_Map_Width, map_Array[map_Index_Array[current_Position_On_Map]], room_Height_Array, room_Width_Array);
         
         instantiate_Player(map_Array[map_Index_Array[current_Position_On_Map]]);
+
+        door_Placement(map_Index_Array, returned_Map_Width, map_Array[map_Index_Array[current_Position_On_Map]]);
 
         set_bkg_tiles(0, 0, room_Width_Array[map_Index_Array[current_Position_On_Map]], room_Height_Array[map_Index_Array[current_Position_On_Map]], map_Array[map_Index_Array[current_Position_On_Map]]);
 
